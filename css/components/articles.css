@@ -1,0 +1,243 @@
+/* Article Viewer Styles */
+
+/* Article Browser */
+.article-browser {
+    padding: var(--spacing-sm);
+    border-bottom: 1px solid var(--terminal-dim);
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.article-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-sm);
+}
+
+.article-item {
+    background: var(--terminal-bg);
+    border: 1px solid var(--terminal-dim);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    cursor: pointer;
+    font-size: 11px;
+    color: var(--terminal-green);
+    transition: all var(--transition-normal);
+}
+
+.article-item:hover {
+    border-color: var(--terminal-green);
+    text-shadow: var(--glow-small);
+    background: rgba(0, 255, 102, 0.1);
+}
+
+.article-item.active {
+    border-color: var(--terminal-bright);
+    color: var(--terminal-bright);
+    text-shadow: var(--glow-medium);
+}
+
+/* Article Content */
+.article-content {
+    padding: var(--spacing-md);
+    line-height: 1.6;
+    font-size: 13px;
+}
+
+.article-title {
+    color: var(--terminal-bright);
+    font-size: 18px;
+    font-weight: bold;
+    text-shadow: var(--glow-medium);
+    margin-bottom: var(--spacing-sm);
+    text-align: center;
+}
+
+.article-subtitle {
+    color: var(--terminal-dim);
+    font-size: 14px;
+    text-align: center;
+    margin-bottom: var(--spacing-xs);
+}
+
+.article-author {
+    color: var(--terminal-dim);
+    font-size: var(--font-size-small);
+    text-align: center;
+    margin-bottom: var(--spacing-lg);
+}
+
+/* Article Sections */
+.article-section {
+    margin: var(--spacing-lg) 0;
+}
+
+.article-section h1 {
+    color: var(--terminal-bright);
+    font-size: 16px;
+    font-weight: bold;
+    margin: var(--spacing-lg) 0 var(--spacing-sm) 0;
+    text-shadow: var(--glow-small);
+}
+
+.article-section h2 {
+    color: var(--terminal-bright);
+    font-size: 14px;
+    font-weight: bold;
+    margin: var(--spacing-md) 0 6px 0;
+    text-shadow: var(--glow-small);
+}
+
+.article-section h3 {
+    color: var(--terminal-green);
+    font-size: 13px;
+    font-weight: bold;
+    margin: var(--spacing-sm) 0 var(--spacing-xs) 0;
+}
+
+.article-section p {
+    margin: var(--spacing-sm) 0;
+    color: var(--terminal-bright);
+}
+
+/* Article Abstract */
+.article-abstract {
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--terminal-dim);
+    padding: var(--spacing-md);
+    margin: var(--spacing-lg) 0;
+    font-style: italic;
+    color: var(--terminal-dim);
+}
+
+/* Theorem Environments */
+.article-theorem {
+    background: rgba(0, 255, 102, 0.05);
+    border: 1px solid var(--terminal-green);
+    padding: var(--spacing-md);
+    margin: var(--spacing-md) 0;
+}
+
+.article-theorem-title {
+    color: var(--terminal-bright);
+    font-weight: bold;
+    margin-bottom: var(--spacing-sm);
+}
+
+.article-proof {
+    background: rgba(0, 0, 0, 0.3);
+    border-left: 3px solid var(--terminal-dim);
+    padding: var(--spacing-sm) var(--spacing-md);
+    margin: var(--spacing-sm) 0;
+    font-style: italic;
+}
+
+/* Mathematical Equations */
+.article-equation {
+    text-align: center;
+    margin: var(--spacing-lg) 0;
+    padding: var(--spacing-sm);
+}
+
+/* Tables */
+.article-table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: var(--spacing-lg) 0;
+}
+
+.article-table th,
+.article-table td {
+    border: 1px solid var(--terminal-dim);
+    padding: var(--spacing-sm);
+    text-align: left;
+}
+
+.article-table th {
+    background: rgba(0, 255, 102, 0.1);
+    color: var(--terminal-bright);
+    font-weight: bold;
+}
+
+/* Bibliography */
+.article-bibliography {
+    margin-top: var(--spacing-xl);
+    padding-top: var(--spacing-lg);
+    border-top: 2px solid var(--terminal-dim);
+}
+
+.article-bibitem {
+    margin: var(--spacing-sm) 0;
+    padding-left: var(--spacing-lg);
+    text-indent: calc(-1 * var(--spacing-lg));
+    font-size: 11px;
+    color: var(--terminal-dim);
+}
+
+/* KaTeX Styling for Terminal Theme */
+.katex {
+    color: var(--terminal-bright) !important;
+    font-size: 1.1em !important;
+}
+
+.katex .base {
+    color: var(--terminal-bright) !important;
+}
+
+.katex-display {
+    margin: var(--spacing-lg) 0 !important;
+    text-align: center !important;
+}
+
+.katex-display .katex {
+    text-shadow: var(--glow-small) !important;
+}
+
+/* Citations */
+.citation {
+    color: var(--terminal-green);
+    font-weight: bold;
+    text-decoration: none;
+    padding: 1px 3px;
+    border-radius: 2px;
+    background: rgba(0, 255, 102, 0.1);
+    font-size: 0.9em;
+}
+
+.citation:hover {
+    background: rgba(0, 255, 102, 0.2);
+    text-shadow: var(--glow-small);
+}
+
+/* Lists */
+.article-section ol,
+.article-section ul {
+    margin: var(--spacing-sm) 0;
+    padding-left: var(--spacing-lg);
+}
+
+.article-section li {
+    margin: var(--spacing-xs) 0;
+    color: var(--terminal-bright);
+}
+
+/* Improved paragraph spacing */
+.article-section p {
+    margin: var(--spacing-sm) 0;
+    color: var(--terminal-bright);
+    text-align: justify;
+}
+
+/* Keywords styling */
+.article-keywords {
+    color: var(--terminal-dim);
+    font-style: italic;
+    margin-top: var(--spacing-xs);
+    font-size: 12px;
+}
+
+/* Better spacing for sections */
+.article-section h1 {
+    margin-top: var(--spacing-xl);
+    border-bottom: 1px solid var(--terminal-dim);
+    padding-bottom: var(--spacing-xs);
+}

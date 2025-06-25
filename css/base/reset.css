@@ -1,0 +1,82 @@
+/* CSS Reset and Base Styles */
+
+/* Import Fonts */
+@import url('https://fonts.googleapis.com/css2?family=VT323:wght@400&display=swap');
+
+/* Hack Font Definitions */
+@font-face {
+    font-family: 'Hack';
+    src: url('https://cdn.jsdelivr.net/npm/hack-font@3.3.0/build/web/fonts/hack-regular.woff2') format('woff2'),
+         url('https://cdn.jsdelivr.net/npm/hack-font@3.3.0/build/web/fonts/hack-regular.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Hack';
+    src: url('https://cdn.jsdelivr.net/npm/hack-font@3.3.0/build/web/fonts/hack-bold.woff2') format('woff2'),
+         url('https://cdn.jsdelivr.net/npm/hack-font@3.3.0/build/web/fonts/hack-bold.woff') format('woff');
+    font-weight: bold;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Hack';
+    src: url('https://cdn.jsdelivr.net/npm/hack-font@3.3.0/build/web/fonts/hack-italic.woff2') format('woff2'),
+         url('https://cdn.jsdelivr.net/npm/hack-font@3.3.0/build/web/fonts/hack-italic.woff') format('woff');
+    font-weight: normal;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Hack';
+    src: url('https://cdn.jsdelivr.net/npm/hack-font@3.3.0/build/web/fonts/hack-bolditalic.woff2') format('woff2'),
+         url('https://cdn.jsdelivr.net/npm/hack-font@3.3.0/build/web/fonts/hack-bolditalic.woff') format('woff');
+    font-weight: bold;
+    font-style: italic;
+    font-display: swap;
+}
+
+/* CSS Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Base Body Styles */
+body {
+    font-family: var(--font-stack);
+    background: var(--terminal-bg);
+    color: var(--terminal-green);
+    line-height: var(--line-height-base);
+    font-size: var(--font-size-base);
+    overflow-x: hidden;
+    min-height: 100vh;
+    background-image: radial-gradient(rgba(0, 255, 102, 0.1) 1px, transparent 1px);
+    background-size: 20px 20px;
+    animation: flicker var(--transition-fast) infinite alternate;
+    font-weight: normal;
+    font-feature-settings: "liga" 1, "calt" 1;
+}
+
+/* Smooth Scrolling */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Links */
+a {
+    color: var(--terminal-bright);
+    text-decoration: none;
+    text-shadow: var(--glow-small);
+    transition: all var(--transition-normal);
+}
+
+a:hover {
+    text-shadow: var(--glow-large);
+    background: rgba(0, 255, 102, 0.1);
+}

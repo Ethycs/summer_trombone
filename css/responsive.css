@@ -1,0 +1,278 @@
+/* Responsive Design - Mobile and Tablet */
+
+/* Mobile Styles */
+@media (max-width: 768px) {
+    body {
+        font-size: 13px;
+    }
+    
+    .desktop {
+        padding: 0;
+        display: block;
+        min-height: calc(100vh - 24px);
+    }
+    
+    .window {
+        position: relative !important;
+        width: 100% !important;
+        height: auto !important;
+        margin: 0 !important;
+        top: auto !important;
+        left: auto !important;
+        right: auto !important;
+        bottom: auto !important;
+        transform: none !important;
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+        border-bottom: none;
+        resize: none;
+    }
+    
+    .window:first-child {
+        border-top: none;
+    }
+    
+    .window-header {
+        position: sticky;
+        top: 0;
+        z-index: var(--z-mobile-header);
+        background: var(--window-title-bg);
+        border-bottom: 1px solid var(--window-border);
+        cursor: default;
+    }
+    
+    .window-content {
+        height: auto;
+        min-height: 200px;
+        padding: var(--spacing-md);
+    }
+    
+    /* Mobile Window Ordering */
+    .main-window {
+        order: 1;
+        min-height: 60vh;
+    }
+    
+    .system-window {
+        order: 2;
+        min-height: 25vh;
+    }
+    
+    .code-window {
+        order: 3;
+        min-height: 40vh;
+    }
+    
+    .log-window {
+        order: 4;
+        min-height: 30vh;
+    }
+    
+    .articles-window {
+        order: 5;
+        min-height: 50vh;
+    }
+    
+    /* Mobile Typography */
+    .ascii-header {
+        font-size: 7px;
+        line-height: 1.0;
+        overflow-x: auto;
+        white-space: nowrap;
+        padding: 5px 0;
+        letter-spacing: -0.03em;
+    }
+    
+    .post-title {
+        font-size: 14px;
+        line-height: 1.2;
+    }
+    
+    .post-content {
+        margin-bottom: var(--spacing-lg);
+    }
+    
+    .code-block {
+        font-size: var(--font-size-tiny);
+        line-height: 1.2;
+        padding: var(--spacing-xs);
+        letter-spacing: 0.01em;
+    }
+    
+    .system-info {
+        font-size: var(--font-size-tiny);
+    }
+    
+    .log-entry {
+        font-size: 9px;
+        line-height: 1.2;
+    }
+    
+    /* Mobile Window Dividers */
+    .window:not(:last-child)::after {
+        content: '';
+        display: block;
+        height: 2px;
+        background: linear-gradient(
+            90deg, 
+            transparent, 
+            var(--terminal-green) 20%, 
+            var(--terminal-green) 80%, 
+            transparent
+        );
+        box-shadow: var(--glow-medium);
+        margin: 0;
+    }
+    
+    /* Mobile Taskbar */
+    .taskbar {
+        font-size: 9px;
+        height: 20px;
+        padding: 0 var(--spacing-xs);
+    }
+    
+    .taskbar-item {
+        padding: 1px var(--spacing-xs);
+        font-size: 8px;
+        margin-right: 2px;
+    }
+    
+    .taskbar-clock {
+        font-size: 8px;
+    }
+    
+    /* Mobile Window Controls */
+    .window-button {
+        width: 16px;
+        height: 16px;
+        font-size: var(--font-size-tiny);
+        touch-action: manipulation;
+    }
+    
+    /* Mobile Content Padding */
+    .window-content {
+        padding-bottom: 20px;
+    }
+    
+    /* Mobile Window Headers */
+    .window-header .window-title {
+        font-size: var(--font-size-small);
+    }
+
+    .window-header {
+        font-size: var(--font-size-tiny);
+        height: 20px;
+    }
+    
+    /* Mobile Touch Targets */
+    a {
+        padding: 2px var(--spacing-xs);
+        margin: 1px;
+        display: inline-block;
+        min-height: 20px;
+        line-height: 16px;
+    }
+    
+    /* Mobile Quote Styling */
+    .quote {
+        font-size: var(--font-size-tiny);
+        padding: 6px 0 6px var(--spacing-sm);
+        margin: var(--spacing-sm) 0;
+        border-left: 3px solid var(--terminal-green);
+    }
+    
+    /* Mobile System Status */
+    .status-line {
+        flex-wrap: wrap;
+        gap: var(--spacing-xs);
+    }
+    
+    /* Mobile Article Styles */
+    .article-content {
+        padding: var(--spacing-sm);
+    }
+    
+    .article-title {
+        font-size: 16px;
+    }
+    
+    .article-list {
+        flex-direction: column;
+        gap: var(--spacing-xs);
+    }
+    
+    .article-item {
+        width: 100%;
+        text-align: center;
+    }
+}
+
+/* Very Small Screens */
+@media (max-width: 480px) {
+    .ascii-header {
+        font-size: 6px;
+        transform: scaleX(0.9);
+        transform-origin: center;
+        letter-spacing: -0.04em;
+    }
+    
+    .window-content {
+        padding: var(--spacing-sm);
+    }
+    
+    .post-title {
+        font-size: 13px;
+    }
+    
+    .code-block {
+        font-size: 9px;
+        padding: 3px;
+    }
+    
+    .system-info {
+        font-size: 9px;
+    }
+    
+    .log-entry {
+        font-size: 8px;
+    }
+    
+    .article-title {
+        font-size: 14px;
+    }
+}
+
+/* Tablet Styles */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .window {
+        min-width: 250px;
+    }
+    
+    .main-window {
+        width: 500px;
+        height: 400px;
+    }
+    
+    .system-window {
+        width: 250px;
+        height: 180px;
+    }
+    
+    .articles-window {
+        width: 600px;
+        height: 500px;
+    }
+}
+
+/* High DPI Displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .ascii-header {
+        -webkit-font-smoothing: none;
+        -moz-osx-font-smoothing: unset;
+    }
+    
+    .window-button {
+        border-width: 0.5px;
+    }
+}

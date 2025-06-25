@@ -1,0 +1,49 @@
+/* CSS Custom Properties - Terminal Theme Variables */
+:root {
+    /* Terminal Colors */
+    --terminal-green: #00ff66;
+    --terminal-bright: #f0fff8;
+    --terminal-bg: #0a0a0a;
+    --terminal-dim: #004d26;
+    --terminal-warn: #ffff00;
+    --terminal-error: #ff6666;
+    
+    /* Window System */
+    --window-border: #00ff66;
+    --window-title-bg: #003d1a;
+    --scanline-color: rgba(0, 255, 102, 0.03);
+    
+    /* Typography */
+    --font-stack: 'Hack', 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', 'Fira Mono', 'Roboto Mono', 'Courier New', monospace;
+    --font-size-base: 14px;
+    --font-size-small: 12px;
+    --font-size-tiny: 10px;
+    --line-height-base: 1.4;
+    
+    /* Spacing */
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 12px;
+    --spacing-lg: 16px;
+    --spacing-xl: 24px;
+    
+    /* Effects */
+    --glow-small: 0 0 3px var(--terminal-green);
+    --glow-medium: 0 0 5px var(--terminal-green);
+    --glow-large: 0 0 8px var(--terminal-green);
+    --shadow-window: 0 0 10px rgba(0, 255, 102, 0.3), inset 0 0 1px rgba(0, 255, 102, 0.5);
+    
+    /* Transitions */
+    --transition-fast: 0.15s ease;
+    --transition-normal: 0.3s ease;
+    --transition-slow: 0.5s ease;
+    
+    /* Z-Index Scale */
+    --z-background: 1;
+    --z-windows: 5;
+    --z-active-window: 10;
+    --z-dragging: 20;
+    --z-mobile-header: 50;
+    --z-taskbar: 100;
+    --z-scanlines: 1000;
+}

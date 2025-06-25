@@ -1,0 +1,45 @@
+/* Taskbar Styles */
+
+.taskbar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 24px;
+    background: var(--window-title-bg);
+    border-top: 1px solid var(--window-border);
+    display: flex;
+    align-items: center;
+    padding: 0 var(--spacing-sm);
+    z-index: var(--z-taskbar);
+    font-size: var(--font-size-tiny);
+    font-family: var(--font-stack);
+    font-weight: normal;
+}
+
+.taskbar-item {
+    background: var(--terminal-bg);
+    border: 1px solid var(--terminal-dim);
+    padding: 2px var(--spacing-sm);
+    margin-right: var(--spacing-xs);
+    color: var(--terminal-green);
+    cursor: pointer;
+    transition: all var(--transition-normal);
+}
+
+.taskbar-item:hover {
+    border-color: var(--terminal-green);
+    text-shadow: var(--glow-small);
+}
+
+.taskbar-item.active {
+    border-color: var(--terminal-green);
+    text-shadow: var(--glow-small);
+    background: rgba(0, 255, 102, 0.1);
+}
+
+.taskbar-clock {
+    margin-left: auto;
+    color: var(--terminal-bright);
+    text-shadow: var(--glow-small);
+}

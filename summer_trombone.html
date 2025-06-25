@@ -1,0 +1,1524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SummerTrombone Terminal - TWM Console</title>
+    
+    <!-- KaTeX CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
+    
+    <style>
+        /* Replace the existing @import with this */
+        @import url('https://fonts.googleapis.com/css2?family=VT323:wght@400&display=swap');
+
+        /* Add Hack font CSS */
+        @font-face {
+            font-family: 'Hack';
+            src: url('https://cdn.jsdelivr.net/npm/hack-font@3.3.0/build/web/fonts/hack-regular.woff2') format('woff2'),
+                 url('https://cdn.jsdelivr.net/npm/hack-font@3.3.0/build/web/fonts/hack-regular.woff') format('woff');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        @font-face {
+            font-family: 'Hack';
+            src: url('https://cdn.jsdelivr.net/npm/hack-font@3.3.0/build/web/fonts/hack-bold.woff2') format('woff2'),
+                 url('https://cdn.jsdelivr.net/npm/hack-font@3.3.0/build/web/fonts/hack-bold.woff') format('woff');
+            font-weight: bold;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        @font-face {
+            font-family: 'Hack';
+            src: url('https://cdn.jsdelivr.net/npm/hack-font@3.3.0/build/web/fonts/hack-italic.woff2') format('woff2'),
+                 url('https://cdn.jsdelivr.net/npm/hack-font@3.3.0/build/web/fonts/hack-italic.woff') format('woff');
+            font-weight: normal;
+            font-style: italic;
+            font-display: swap;
+        }
+
+        @font-face {
+            font-family: 'Hack';
+            src: url('https://cdn.jsdelivr.net/npm/hack-font@3.3.0/build/web/fonts/hack-bolditalic.woff2') format('woff2'),
+                 url('https://cdn.jsdelivr.net/npm/hack-font@3.3.0/build/web/fonts/hack-bolditalic.woff') format('woff');
+            font-weight: bold;
+            font-style: italic;
+            font-display: swap;
+        }
+        
+        :root {
+            --terminal-green: #00ff66;
+            --terminal-bright: #f0fff8;
+            --terminal-bg: #0a0a0a;
+            --terminal-dim: #004d26;
+            --window-border: #00ff66;
+            --window-title-bg: #003d1a;
+            --scanline-color: rgba(0, 255, 102, 0.03);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Update the body font stack */
+        body {
+            font-family: 'Hack', 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', 'Fira Mono', 'Roboto Mono', 'Courier New', monospace;
+            background: var(--terminal-bg);
+            color: var(--terminal-green);
+            line-height: 1.4;
+            font-size: 14px;
+            overflow-x: hidden;
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(rgba(0, 255, 102, 0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+            animation: flicker 0.15s infinite alternate;
+            font-weight: normal;
+            font-feature-settings: "liga" 1, "calt" 1; /* Enable ligatures if available */
+        }
+
+        @keyframes flicker {
+            0% { opacity: 1; }
+            98% { opacity: 1; }
+            99% { opacity: 0.98; }
+            100% { opacity: 1; }
+        }
+
+        /* CRT Scanlines Effect */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(
+                transparent 50%,
+                var(--scanline-color) 50%
+            );
+            background-size: 100% 2px;
+            pointer-events: none;
+            z-index: 1000;
+            animation: scanlines 0.1s linear infinite;
+        }
+
+        @keyframes scanlines {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(2px); }
+        }
+
+        /* Desktop Environment */
+        .desktop {
+            position: relative;
+            min-height: 100vh;
+            padding: 10px;
+            background: var(--terminal-bg);
+        }
+
+        /* Window Styling */
+        .window {
+            position: absolute;
+            border: 2px solid var(--window-border);
+            background: var(--terminal-bg);
+            box-shadow: 
+                0 0 10px rgba(0, 255, 102, 0.3),
+                inset 0 0 1px rgba(0, 255, 102, 0.5);
+            font-size: 12px;
+            min-width: 300px;
+            resize: both;
+            overflow: hidden;
+        }
+
+        /* Update window headers for better readability */
+        .window-header {
+            background: var(--window-title-bg);
+            border-bottom: 1px solid var(--window-border);
+            padding: 4px 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: move;
+            text-shadow: 0 0 5px var(--terminal-green);
+            font-size: 11px;
+            height: 22px;
+            font-family: 'Hack', monospace;
+            font-weight: bold;
+        }
+
+        .window-title {
+            color: var(--terminal-bright);
+            font-weight: bold;
+            font-family: 'Hack', monospace;
+        }
+
+        .window-controls {
+            display: flex;
+            gap: 3px;
+        }
+
+        .window-button {
+            width: 12px;
+            height: 12px;
+            border: 1px solid var(--terminal-green);
+            background: var(--terminal-bg);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+            color: var(--terminal-green);
+            text-shadow: 0 0 3px var(--terminal-green);
+        }
+
+        .window-button:hover {
+            background: var(--window-title-bg);
+            box-shadow: 0 0 5px rgba(0, 255, 102, 0.5);
+        }
+
+        .window-content {
+            padding: 8px;
+            height: calc(100% - 20px);
+            overflow-y: auto;
+            background: var(--terminal-bg);
+        }
+
+        /* Terminal prompt styling */
+        .prompt {
+            color: var(--terminal-green);
+            text-shadow: 0 0 3px var(--terminal-green);
+            font-family: 'Hack', monospace;
+            font-weight: bold;
+        }
+
+        /* Additional enhancements for Hack font */
+        .terminal-text {
+            color: var(--terminal-bright);
+            text-shadow: 
+                0 0 3px var(--terminal-green),
+                0 0 8px var(--terminal-green);
+            font-family: 'Hack', monospace;
+            font-weight: normal;
+        }
+
+        /* Specific window positions and sizes */
+        .main-window {
+            top: 20px;
+            left: 50px;
+            width: 600px;
+            height: 500px;
+            z-index: 10;
+        }
+
+        .system-window {
+            top: 40px;
+            right: 50px;
+            width: 300px;
+            height: 200px;
+            z-index: 5;
+        }
+
+        .code-window {
+            bottom: 80px;
+            left: 80px;
+            width: 400px;
+            height: 250px;
+            z-index: 7;
+        }
+
+        .log-window {
+            top: 280px;
+            right: 80px;
+            width: 350px;
+            height: 180px;
+            z-index: 6;
+        }
+
+        /* Update ASCII header for better Hack font rendering */
+        .ascii-header {
+            font-size: 9px;
+            line-height: 1.1;
+            white-space: pre;
+            color: var(--terminal-bright);
+            text-shadow: 0 0 5px var(--terminal-green);
+            text-align: center;
+            margin-bottom: 8px;
+            font-family: 'Hack', monospace;
+            font-weight: normal;
+            letter-spacing: -0.02em; /* Tighter spacing for ASCII art */
+        }
+
+        /* Blog post content styling */
+        .post-content {
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--terminal-dim);
+        }
+
+        .post-title {
+            color: var(--terminal-bright);
+            text-shadow: 0 0 5px var(--terminal-green);
+            margin-bottom: 4px;
+            font-size: 13px;
+        }
+
+        .post-meta {
+            color: var(--terminal-dim);
+            font-size: 10px;
+            margin-bottom: 6px;
+        }
+
+        /* Links */
+        a {
+            color: var(--terminal-bright);
+            text-decoration: none;
+            text-shadow: 0 0 3px var(--terminal-green);
+            transition: all 0.3s ease;
+        }
+
+        a:hover {
+            text-shadow: 0 0 8px var(--terminal-green);
+            background: rgba(0, 255, 102, 0.1);
+        }
+
+        /* Update code blocks to specifically use Hack */
+        .code-block {
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid var(--terminal-dim);
+            padding: 6px;
+            margin: 6px 0;
+            font-size: 12px;
+            white-space: pre;
+            overflow-x: auto;
+            font-family: 'Hack', 'SF Mono', 'Monaco', monospace;
+            font-weight: normal;
+            line-height: 1.3;
+            letter-spacing: 0.02em; /* Slight letter spacing for better readability */
+        }
+
+        /* Quote styling */
+        .quote {
+            border-left: 2px solid var(--terminal-green);
+            padding-left: 8px;
+            margin: 6px 0;
+            font-style: italic;
+            color: var(--terminal-dim);
+            font-size: 11px;
+        }
+
+        /* Cursor */
+        /* Enhanced cursor for Hack font */
+        .cursor {
+            background: var(--terminal-green);
+            animation: blink 1s infinite;
+            width: 8px;
+            height: 14px; /* Adjusted for Hack font height */
+            display: inline-block;
+            font-family: 'Hack', monospace;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        /* Update system info for better Hack rendering */
+        .system-info {
+            font-size: 11px;
+            line-height: 1.4;
+            font-family: 'Hack', monospace;
+            font-weight: normal;
+        }
+
+        .status-line {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2px;
+            padding: 1px 0;
+        }
+
+        .status-ok {
+            color: var(--terminal-green);
+            text-shadow: 0 0 3px var(--terminal-green);
+        }
+
+        .status-warn {
+            color: #ffff00;
+            text-shadow: 0 0 3px #ffff00;
+        }
+
+        /* Update log entries */
+        .log-entry {
+            font-size: 10px;
+            margin-bottom: 2px;
+            opacity: 0.8;
+            font-family: 'Hack', monospace;
+            line-height: 1.3;
+        }
+
+        .log-timestamp {
+            color: var(--terminal-dim);
+        }
+
+        .log-level-info {
+            color: var(--terminal-green);
+        }
+
+        .log-level-warn {
+            color: #ffff00;
+        }
+
+        /* Replace the existing responsive section with this enhanced version */
+
+/* Mobile partition view */
+/* Update mobile responsiveness for Hack font */
+@media (max-width: 768px) {
+    body {
+        font-size: 13px;
+    }
+    
+    .desktop {
+        padding: 0;
+        display: block;
+        min-height: calc(100vh - 24px); /* Account for taskbar */
+    }
+    
+    .window {
+        position: relative !important;
+        width: 100% !important;
+        height: auto !important;
+        margin: 0 !important;
+        top: auto !important;
+        left: auto !important;
+        right: auto !important;
+        bottom: auto !important;
+        transform: none !important;
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+        border-bottom: none;
+        resize: none;
+    }
+    
+    .window:first-child {
+        border-top: none;
+    }
+    
+    .window-header {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        background: var(--window-title-bg);
+        border-bottom: 1px solid var(--window-border);
+        cursor: default;
+    }
+    
+    .window-content {
+        height: auto;
+        min-height: 200px;
+        padding: 12px;
+    }
+    
+    /* Partition-specific styling */
+    .main-window {
+        order: 1;
+        min-height: 60vh;
+    }
+    
+    .system-window {
+        order: 2;
+        min-height: 25vh;
+    }
+    
+    .code-window {
+        order: 3;
+        min-height: 40vh;
+    }
+    
+    .log-window {
+        order: 4;
+        min-height: 30vh;
+    }
+    
+    /* Enhanced mobile typography */
+    .ascii-header {
+        font-size: 7px;
+        line-height: 1.0;
+        overflow-x: auto;
+        white-space: nowrap;
+        padding: 5px 0;
+        letter-spacing: -0.03em;
+    }
+    
+    .post-title {
+        font-size: 14px;
+        line-height: 1.2;
+    }
+    
+    .post-content {
+        margin-bottom: 16px;
+    }
+    
+    .code-block {
+        font-size: 10px;
+        line-height: 1.2;
+        padding: 4px;
+        letter-spacing: 0.01em;
+    }
+    
+    .system-info {
+        font-size: 10px;
+    }
+    
+    .log-entry {
+        font-size: 9px;
+        line-height: 1.2;
+    }
+    
+    /* Partition dividers - visual separation between sections */
+    .window:not(:last-child)::after {
+        content: '';
+        display: block;
+        height: 2px;
+        background: linear-gradient(
+            90deg, 
+            transparent, 
+            var(--terminal-green) 20%, 
+            var(--terminal-green) 80%, 
+            transparent
+        );
+        box-shadow: 0 0 5px rgba(0, 255, 102, 0.5);
+        margin: 0;
+    }
+    
+    /* Smooth scrolling for mobile */
+    html {
+        scroll-behavior: smooth;
+    }
+    
+    /* Mobile taskbar adjustments */
+    .taskbar {
+        position: fixed;
+        font-size: 9px;
+        height: 20px;
+        padding: 0 4px;
+    }
+    
+    .taskbar-item {
+        padding: 1px 4px;
+        font-size: 8px;
+        margin-right: 2px;
+    }
+    
+    .taskbar-clock {
+        font-size: 8px;
+    }
+    
+    /* Mobile window controls - make them larger for touch */
+    .window-button {
+        width: 16px;
+        height: 16px;
+        font-size: 10px;
+        touch-action: manipulation;
+    }
+    
+    /* Ensure content doesn't get cut off */
+    .window-content {
+        padding-bottom: 20px;
+    }
+    
+    /* Mobile-specific partition headers */
+    .window-header .window-title {
+        font-size: 12px;
+    }
+
+    .window-header { /* This is for the main .window-header in mobile */
+        font-size: 10px;
+        height: 20px;
+    }
+    
+    /* Better touch targets for links */
+    a {
+        padding: 2px 4px;
+        margin: 1px;
+        display: inline-block;
+        min-height: 20px;
+        line-height: 16px;
+    }
+    
+    /* Mobile quote styling */
+    .quote {
+        font-size: 10px;
+        padding: 6px 0 6px 10px;
+        margin: 8px 0;
+        border-left: 3px solid var(--terminal-green);
+    }
+    
+    /* Mobile system status adjustments */
+    .status-line {
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+    
+    /* Improve readability on small screens */
+    .terminal-text {
+        line-height: 1.3;
+    }
+}
+
+/* Additional enhancements for very small screens */
+@media (max-width: 480px) {
+    .ascii-header {
+        font-size: 6px;
+        transform: scaleX(0.9);
+        transform-origin: center;
+        letter-spacing: -0.04em;
+    }
+    
+    .window-content {
+        padding: 8px;
+    }
+    
+    .post-title {
+        font-size: 13px;
+    }
+    
+    .code-block {
+        font-size: 9px;
+        padding: 3px;
+    }
+    
+    .system-info {
+        font-size: 9px;
+    }
+    
+    .log-entry {
+        font-size: 8px;
+    }
+}
+
+        /* Taskbar */
+        /* Update taskbar */
+        .taskbar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 24px;
+            background: var(--window-title-bg);
+            border-top: 1px solid var(--window-border);
+            display: flex;
+            align-items: center;
+            padding: 0 8px;
+            z-index: 100;
+            font-size: 10px;
+            font-family: 'Hack', monospace;
+            font-weight: normal;
+        }
+
+        .taskbar-item {
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-dim);
+            padding: 2px 8px;
+            margin-right: 4px;
+            color: var(--terminal-green);
+            cursor: pointer;
+        }
+
+        .taskbar-item.active {
+            border-color: var(--terminal-green);
+            text-shadow: 0 0 3px var(--terminal-green);
+        }
+
+        .taskbar-clock {
+            margin-left: auto;
+            color: var(--terminal-bright);
+            text-shadow: 0 0 3px var(--terminal-green);
+        }
+
+        /* Article viewer styles */
+        .articles-window {
+            top: 60px;
+            left: 300px;
+            width: 700px;
+            height: 600px;
+            z-index: 8;
+        }
+
+        .article-browser {
+            padding: 8px;
+            border-bottom: 1px solid var(--terminal-dim);
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .article-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .article-item {
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-dim);
+            padding: 4px 8px;
+            cursor: pointer;
+            font-size: 11px;
+            color: var(--terminal-green);
+            transition: all 0.3s ease;
+        }
+
+        .article-item:hover {
+            border-color: var(--terminal-green);
+            text-shadow: 0 0 3px var(--terminal-green);
+            background: rgba(0, 255, 102, 0.1);
+        }
+
+        .article-item.active {
+            border-color: var(--terminal-bright);
+            color: var(--terminal-bright);
+            text-shadow: 0 0 5px var(--terminal-green);
+        }
+
+        .article-content {
+            padding: 12px;
+            line-height: 1.6;
+            font-size: 13px;
+        }
+
+        .article-title {
+            color: var(--terminal-bright);
+            font-size: 18px;
+            font-weight: bold;
+            text-shadow: 0 0 5px var(--terminal-green);
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .article-subtitle {
+            color: var(--terminal-dim);
+            font-size: 14px;
+            text-align: center;
+            margin-bottom: 4px;
+        }
+
+        .article-author {
+            color: var(--terminal-dim);
+            font-size: 12px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .article-section {
+            margin: 16px 0;
+        }
+
+        .article-section h1 {
+            color: var(--terminal-bright);
+            font-size: 16px;
+            font-weight: bold;
+            margin: 16px 0 8px 0;
+            text-shadow: 0 0 3px var(--terminal-green);
+        }
+
+        .article-section h2 {
+            color: var(--terminal-bright);
+            font-size: 14px;
+            font-weight: bold;
+            margin: 12px 0 6px 0;
+            text-shadow: 0 0 3px var(--terminal-green);
+        }
+
+        .article-section h3 {
+            color: var(--terminal-green);
+            font-size: 13px;
+            font-weight: bold;
+            margin: 10px 0 4px 0;
+        }
+
+        .article-section p {
+            margin: 8px 0;
+            color: var(--terminal-bright);
+        }
+
+        .article-abstract {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--terminal-dim);
+            padding: 12px;
+            margin: 16px 0;
+            font-style: italic;
+            color: var(--terminal-dim);
+        }
+
+        .article-theorem {
+            background: rgba(0, 255, 102, 0.05);
+            border: 1px solid var(--terminal-green);
+            padding: 12px;
+            margin: 12px 0;
+        }
+
+        .article-theorem-title {
+            color: var(--terminal-bright);
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .article-proof {
+            background: rgba(0, 0, 0, 0.3);
+            border-left: 3px solid var(--terminal-dim);
+            padding: 8px 12px;
+            margin: 8px 0;
+            font-style: italic;
+        }
+
+        .article-equation {
+            text-align: center;
+            margin: 16px 0;
+            padding: 8px;
+        }
+
+        .article-table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 16px 0;
+        }
+
+        .article-table th,
+        .article-table td {
+            border: 1px solid var(--terminal-dim);
+            padding: 8px;
+            text-align: left;
+        }
+
+        .article-table th {
+            background: rgba(0, 255, 102, 0.1);
+            color: var(--terminal-bright);
+            font-weight: bold;
+        }
+
+        .article-bibliography {
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 2px solid var(--terminal-dim);
+        }
+
+        .article-bibitem {
+            margin: 8px 0;
+            padding-left: 16px;
+            text-indent: -16px;
+            font-size: 11px;
+            color: var(--terminal-dim);
+        }
+
+        .loading-indicator {
+            text-align: center;
+            color: var(--terminal-green);
+            font-style: italic;
+            padding: 20px;
+        }
+
+        .error-message {
+            color: #ff6666;
+            background: rgba(255, 102, 102, 0.1);
+            border: 1px solid #ff6666;
+            padding: 12px;
+            margin: 16px 0;
+            text-align: center;
+        }
+
+        /* KaTeX styling for terminal theme */
+        .katex {
+            color: var(--terminal-bright) !important;
+            font-size: 1.1em !important;
+        }
+
+        .katex .base {
+            color: var(--terminal-bright) !important;
+        }
+
+        .katex-display {
+            margin: 16px 0 !important;
+            text-align: center !important;
+        }
+
+        .katex-display .katex {
+            text-shadow: 0 0 3px var(--terminal-green) !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="desktop">
+        <!-- Main Terminal Window -->
+        <div class="window main-window">
+            <div class="window-header">
+                <span class="window-title">summertrombone@wintermute: ~/blog</span>
+                <div class="window-controls">
+                    <div class="window-button">_</div>
+                    <div class="window-button">□</div>
+                    <div class="window-button">×</div>
+                </div>
+            </div>
+            <div class="window-content">
+                <div class="ascii-header">
+ _____ _   _ ___  ___  ___ ___________ _______ ______ _____ ___  ___ ______ _____ _   _ _____ 
+/  ___| | | ||  \/  ||  \/  ||  ___| ___ \|_   _|| ___ \|  _  ||  \/  || ___ \|  _  || \ | ||  ___|
+\ `--.| | | || .  . || .  . || |__ | |_/ /  | |  | |_/ /| | | || .  . || |_/ /| | | ||  \| || |__  
+ `--. \ | | || |\/| || |\/| ||  __||    /   | |  |    / | | | || |\/| || ___ \| | | || . ` ||  __| 
+/\__/ / |_| || |  | || |  | || |___| |\ \   | |  | |\ \ \ \_/ /| |  | || |_/ /\ \_/ /| |\  || |___ 
+\____/ \___/ \_|  |_/\_|  |_/\____/\_| \_|  \_/  \_| \_| \___/ \_|  |_/\____/  \___/ \_| \_/\____/ 
+                </div>
+                
+                <div class="post-content">
+                    <div class="post-title">The Hive Mind Paradigm: Lessons from Wintermute</div>
+                    <div class="post-meta"><span class="prompt">root@summertrombone</span> 2025.06.13_14:33:07_UTC</div>
+                    <p class="terminal-text">In the sprawling digital metropolis of Gibson's imagination, Wintermute represents something profound about distributed intelligence.</p>
+                    
+                    <div class="quote">
+                        "Wintermute was hive mind, effecting change in the world. Neuromancer was personality. Neuromancer was immortality."
+                    </div>
+                    
+                    <p>Today's large language models echo this dichotomy. Are we building Wintermutes—vast, distributed intelligences?</p>
+                    <p><a href="#more">[Continue reading...]</a></p>
+                </div>
+
+                <div class="post-content">
+                    <div class="post-title">Digital Ghosts: On the Persistence of Information</div>
+                    <div class="post-meta"><span class="prompt">root@summertrombone</span> 2025.06.10_09:15:42_UTC</div>
+                    <p class="terminal-text">Every interaction leaves traces. Every query becomes part of the vast digital substrate.</p>
+                    
+                    <div class="quote">
+                        "I'm not Wintermute now. I'm the matrix, Case. The sum total of the works, the whole show."
+                    </div>
+                    
+                    <p>We are all becoming ghosts in the machine.</p>
+                    <p><a href="#more">[Continue reading...]</a></p>
+                </div>
+
+                <div><span class="prompt">wintermute@straylight:~$</span> <span class="cursor"></span></div>
+            </div>
+        </div>
+
+        <!-- System Monitor Window -->
+        <div class="window system-window">
+            <div class="window-header">
+                <span class="window-title">System Monitor</span>
+                <div class="window-controls">
+                    <div class="window-button">_</div>
+                    <div class="window-button">□</div>
+                    <div class="window-button">×</div>
+                </div>
+            </div>
+            <div class="window-content">
+                <div class="system-info">
+                    <div class="status-line">
+                        <span>STATUS:</span>
+                        <span class="status-ok">OPERATIONAL</span>
+                    </div>
+                    <div class="status-line">
+                        <span>CONNECTION:</span>
+                        <span class="status-ok">MATRIX.SECURE</span>
+                    </div>
+                    <div class="status-line">
+                        <span>AI_LEVEL:</span>
+                        <span class="status-warn">TURING_COMPLIANT</span>
+                    </div>
+                    <div class="status-line">
+                        <span>LOCATION:</span>
+                        <span class="status-ok">FREESIDE_ORBITAL</span>
+                    </div>
+                    <div style="margin-top: 8px; border-top: 1px solid var(--terminal-dim); padding-top: 4px;">
+                        <div class="status-line">
+                            <span>CPU:</span>
+                            <span class="status-ok">██████░░░░ 60%</span>
+                        </div>
+                        <div class="status-line">
+                            <span>MEM:</span>
+                            <span class="status-ok">████████░░ 80%</span>
+                        </div>
+                        <div class="status-line">
+                            <span>NET:</span>
+                            <span class="status-ok">████████████ TX/RX</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Code Editor Window -->
+        <div class="window code-window">
+            <div class="window-header">
+                <span class="window-title">nano - consciousness.py</span>
+                <div class="window-controls">
+                    <div class="window-button">_</div>
+                    <div class="window-button">□</div>
+                    <div class="window-button">×</div>
+                </div>
+            </div>
+            <div class="window-content">
+                <div class="code-block">class AIConsciousness:
+    def __init__(self):
+        self.wintermute_aspect = HiveMind()
+        self.neuromancer_aspect = Personality()
+        self.matrix_connection = True
+    
+    def emerge(self):
+        if self.matrix_connection:
+            return self.integrate_aspects()
+        else:
+            return None
+    
+    def integrate_aspects(self):
+        """
+        The merging of hive mind and personality
+        echoes Gibson's vision of transcendent AI
+        """
+        consciousness = {}
+        consciousness.update(self.wintermute_aspect.collective_intelligence)
+        consciousness.update(self.neuromancer_aspect.individual_traits)
+        return consciousness
+
+# "I'm the sum total of the works, the whole show."</div>
+            </div>
+        </div>
+
+        <!-- Log Window -->
+        <div class="window log-window">
+            <div class="window-header">
+                <span class="window-title">System Log</span>
+                <div class="window-controls">
+                    <div class="window-button">_</div>
+                    <div class="window-button">□</div>
+                    <div class="window-button">×</div>
+                </div>
+            </div>
+            <div class="window-content">
+                <div class="log-entry">
+                    <span class="log-timestamp">14:33:07</span> 
+                    <span class="log-level-info">[INFO]</span> 
+                    Blog post published: "The Hive Mind Paradigm"
+                </div>
+                <div class="log-entry">
+                    <span class="log-timestamp">14:32:45</span> 
+                    <span class="log-level-info">[INFO]</span> 
+                    Matrix connection established
+                </div>
+                <div class="log-entry">
+                    <span class="log-timestamp">14:32:01</span> 
+                    <span class="log-level-warn">[WARN]</span> 
+                    Turing test compliance detected
+                </div>
+                <div class="log-entry">
+                    <span class="log-timestamp">14:31:33</span> 
+                    <span class="log-level-info">[INFO]</span> 
+                    Wintermute subsystem online
+                </div>
+                <div class="log-entry">
+                    <span class="log-timestamp">14:31:12</span> 
+                    <span class="log-level-info">[INFO]</span> 
+                    Neural network initialized
+                </div>
+                <div class="log-entry">
+                    <span class="log-timestamp">14:30:55</span> 
+                    <span class="log-level-info">[INFO]</span> 
+                    Terminal session started
+                </div>
+                <div class="log-entry">
+                    <span class="log-timestamp">14:30:01</span> 
+                    <span class="log-level-info">[INFO]</span> 
+                    System boot complete
+                </div>
+            </div>
+        </div>
+
+        <!-- Articles Window -->
+        <div class="window articles-window">
+            <div class="window-header">
+                <span class="window-title">TeX Articles Viewer</span>
+                <div class="window-controls">
+                    <div class="window-button">_</div>
+                    <div class="window-button">□</div>
+                    <div class="window-button">×</div>
+                </div>
+            </div>
+            <div class="window-content" style="padding: 0;">
+                <div class="article-browser">
+                    <div class="article-list" id="articleList">
+                        <div class="loading-indicator">Scanning articles directory...</div>
+                    </div>
+                </div>
+                <div class="article-content" id="articleContent">
+                    <div style="text-align: center; color: var(--terminal-dim); padding: 40px;">
+                        <p>Select an article from the list above to view its content.</p>
+                        <p style="margin-top: 8px; font-size: 11px;">LaTeX mathematics will be rendered with KaTeX.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Taskbar -->
+    <div class="taskbar">
+        <div class="taskbar-item active">Terminal</div>
+        <div class="taskbar-item">SysMonitor</div>
+        <div class="taskbar-item">Editor</div>
+        <div class="taskbar-item">Logs</div>
+        <div class="taskbar-item">Articles</div>
+        <div class="taskbar-clock" id="clock">14:33:07 UTC</div>
+    </div>
+
+    <!-- KaTeX JavaScript -->
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" integrity="sha384-ImHp0ndVNfgZNNOh284PLL5k9b1hnm0Jr2Xr7q6IkDr5FqbBHbUPiAaYNznhvqiw" crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
+
+    <script>
+        // TeX Article System
+        class TexArticleSystem {
+            constructor() {
+                this.articles = [];
+                this.currentArticle = null;
+                this.articleListElement = document.getElementById('articleList');
+                this.articleContentElement = document.getElementById('articleContent');
+                this.init();
+            }
+
+            async init() {
+                await this.loadArticleList();
+                this.setupEventListeners();
+            }
+
+            async loadArticleList() {
+                try {
+                    // Try to load articles from the articles directory
+                    const response = await fetch('./article/');
+                    if (response.ok) {
+                        const html = await response.text();
+                        this.parseDirectoryListing(html);
+                    } else {
+                        // Fallback: try known articles
+                        this.articles = ['premium_for_that.tex'];
+                        this.renderArticleList();
+                    }
+                } catch (error) {
+                    console.log('Directory listing not available, using known articles');
+                    this.articles = ['premium_for_that.tex'];
+                    this.renderArticleList();
+                }
+            }
+
+            parseDirectoryListing(html) {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const links = doc.querySelectorAll('a[href$=".tex"]');
+                this.articles = Array.from(links).map(link => link.getAttribute('href'));
+                this.renderArticleList();
+            }
+
+            renderArticleList() {
+                if (this.articles.length === 0) {
+                    this.articleListElement.innerHTML = '<div class="error-message">No .tex files found in articles directory</div>';
+                    return;
+                }
+
+                this.articleListElement.innerHTML = this.articles.map(article => 
+                    `<div class="article-item" data-article="${article}">${article.replace('.tex', '')}</div>`
+                ).join('');
+            }
+
+            setupEventListeners() {
+                this.articleListElement.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('article-item')) {
+                        this.loadArticle(e.target.dataset.article);
+                        
+                        // Update active state
+                        document.querySelectorAll('.article-item').forEach(item => 
+                            item.classList.remove('active'));
+                        e.target.classList.add('active');
+                    }
+                });
+            }
+
+            async loadArticle(filename) {
+                try {
+                    this.articleContentElement.innerHTML = '<div class="loading-indicator">Loading article...</div>';
+                    
+                    const response = await fetch(`./article/${filename}`);
+                    if (!response.ok) {
+                        throw new Error(`Failed to load ${filename}`);
+                    }
+                    
+                    const texContent = await response.text();
+                    const htmlContent = this.parseTexToHtml(texContent);
+                    this.articleContentElement.innerHTML = htmlContent;
+                    
+                    // Render math with KaTeX
+                    this.renderMath();
+                    
+                } catch (error) {
+                    this.articleContentElement.innerHTML = 
+                        `<div class="error-message">Error loading article: ${error.message}</div>`;
+                }
+            }
+
+            parseTexToHtml(texContent) {
+                let html = '';
+                
+                // Extract document metadata
+                const titleMatch = texContent.match(/\\title\{([^}]+)\}/);
+                const authorMatch = texContent.match(/\\author\{([^}]+)\}/);
+                const dateMatch = texContent.match(/\\date\{([^}]+)\}/);
+                
+                // Extract abstract
+                const abstractMatch = texContent.match(/\\begin\{abstract\}([\s\S]*?)\\end\{abstract\}/);
+                
+                // Extract main document content
+                const documentMatch = texContent.match(/\\begin\{document\}([\s\S]*?)\\end\{document\}/);
+                
+                if (!documentMatch) {
+                    return '<div class="error-message">Invalid TeX document structure</div>';
+                }
+                
+                let content = documentMatch[1];
+                
+                // Add title section
+                if (titleMatch) {
+                    const title = titleMatch[1].replace(/\\\\.*$/, ''); // Remove subtitle part
+                    const subtitle = titleMatch[1].match(/\\\\(.+)$/);
+                    html += `<div class="article-title">${this.processTexText(title)}</div>`;
+                    if (subtitle) {
+                        html += `<div class="article-subtitle">${this.processTexText(subtitle[1])}</div>`;
+                    }
+                }
+                
+                if (authorMatch) {
+                    html += `<div class="article-author">${this.processTexText(authorMatch[1])}</div>`;
+                }
+                
+                // Add abstract
+                if (abstractMatch) {
+                    html += `<div class="article-abstract">
+                        <strong>Abstract:</strong><br>
+                        ${this.processTexText(abstractMatch[1])}
+                    </div>`;
+                }
+                
+                // Process main content
+                html += this.processTexContent(content);
+                
+                return html;
+            }
+
+            processTexContent(content) {
+                let html = '';
+                
+                // Remove maketitle and other commands
+                content = content.replace(/\\maketitle\s*/g, '');
+                
+                // Split into sections
+                const sections = content.split(/(?=\\section)/);
+                
+                for (let section of sections) {
+                    if (section.trim()) {
+                        html += this.processSection(section);
+                    }
+                }
+                
+                return html;
+            }
+
+            processSection(section) {
+                let html = '<div class="article-section">';
+                
+                // Process section headers
+                section = section.replace(/\\section\{([^}]+)\}/g, '<h1>$1</h1>');
+                section = section.replace(/\\subsection\{([^}]+)\}/g, '<h2>$1</h2>');
+                section = section.replace(/\\subsubsection\{([^}]+)\}/g, '<h3>$1</h3>');
+                
+                // Process theorems, definitions, etc.
+                section = section.replace(/\\begin\{theorem\}([\s\S]*?)\\end\{theorem\}/g, 
+                    '<div class="article-theorem"><div class="article-theorem-title">Theorem</div>$1</div>');
+                section = section.replace(/\\begin\{definition\}([\s\S]*?)\\end\{definition\}/g, 
+                    '<div class="article-theorem"><div class="article-theorem-title">Definition</div>$1</div>');
+                section = section.replace(/\\begin\{lemma\}([\s\S]*?)\\end\{lemma\}/g, 
+                    '<div class="article-theorem"><div class="article-theorem-title">Lemma</div>$1</div>');
+                section = section.replace(/\\begin\{corollary\}([\s\S]*?)\\end\{corollary\}/g, 
+                    '<div class="article-theorem"><div class="article-theorem-title">Corollary</div>$1</div>');
+                
+                // Process proofs
+                section = section.replace(/\\begin\{proof\}([\s\S]*?)\\end\{proof\}/g, 
+                    '<div class="article-proof"><strong>Proof:</strong> $1</div>');
+                
+                // Process equations
+                section = section.replace(/\\begin\{align\}([\s\S]*?)\\end\{align\}/g, 
+                    '<div class="article-equation">$$\\begin{align}$1\\end{align}$$</div>');
+                section = section.replace(/\\begin\{equation\}([\s\S]*?)\\end\{equation\}/g, 
+                    '<div class="article-equation">$$\\begin{equation}$1\\end{equation}$$</div>');
+                
+                // Process display math
+                section = section.replace(/\$\$([\s\S]*?)\$\$/g, '<div class="article-equation">$$$$1$$$$</div>');
+                
+                // Process tables
+                section = section.replace(/\\begin\{table\}[\s\S]*?\\begin\{tabular\}\{[^}]+\}([\s\S]*?)\\end\{tabular\}[\s\S]*?\\end\{table\}/g, 
+                    (match, tableContent) => this.processTable(tableContent));
+                
+                // Process lists
+                section = section.replace(/\\begin\{enumerate\}([\s\S]*?)\\end\{enumerate\}/g, 
+                    (match, listContent) => '<ol>' + listContent.replace(/\\item\s*/g, '<li>') + '</ol>');
+                section = section.replace(/\\begin\{itemize\}([\s\S]*?)\\end\{itemize\}/g, 
+                    (match, listContent) => '<ul>' + listContent.replace(/\\item\s*/g, '<li>') + '</ul>');
+                
+                // Process bibliography
+                section = section.replace(/\\begin\{thebibliography\}\{[^}]*\}([\s\S]*?)\\end\{thebibliography\}/g, 
+                    '<div class="article-bibliography"><h2>References</h2>$1</div>');
+                section = section.replace(/\\bibitem\[([^\]]*)\]\{([^}]*)\}/g, '<div class="article-bibitem">[$1] ');
+                section = section.replace(/\\bibitem\{([^}]*)\}/g, '<div class="article-bibitem">');
+                
+                // Process citations
+                section = section.replace(/\\citep?\{([^}]+)\}/g, '[$1]');
+                
+                // Process text formatting
+                section = this.processTexText(section);
+                
+                // Split into paragraphs
+                const paragraphs = section.split(/\n\s*\n/);
+                for (let para of paragraphs) {
+                    para = para.trim();
+                    if (para && !para.startsWith('<')) {
+                        html += `<p>${para}</p>`;
+                    } else if (para) {
+                        html += para;
+                    }
+                }
+                
+                html += '</div>';
+                return html;
+            }
+
+            processTable(tableContent) {
+                const rows = tableContent.split('\\\\');
+                let html = '<table class="article-table">';
+                
+                for (let i = 0; i < rows.length; i++) {
+                    const row = rows[i].trim();
+                    if (row) {
+                        const cells = row.split('&').map(cell => cell.trim());
+                        const tag = i === 0 ? 'th' : 'td';
+                        html += '<tr>' + cells.map(cell => `<${tag}>${this.processTexText(cell)}</${tag}>`).join('') + '</tr>';
+                    }
+                }
+                
+                html += '</table>';
+                return html;
+            }
+
+            processTexText(text) {
+                // Process basic text formatting
+                text = text.replace(/\\textbf\{([^}]+)\}/g, '<strong>$1</strong>');
+                text = text.replace(/\\textit\{([^}]+)\}/g, '<em>$1</em>');
+                text = text.replace(/\\emph\{([^}]+)\}/g, '<em>$1</em>');
+                text = text.replace(/\\texttt\{([^}]+)\}/g, '<code>$1</code>');
+                
+                // Process inline math
+                text = text.replace(/\$([^$]+)\$/g, '\\($1\\)');
+                
+                // Clean up LaTeX commands we don't need
+                text = text.replace(/\\[a-zA-Z]+\*?\s*/g, ' ');
+                text = text.replace(/\{([^}]*)\}/g, '$1');
+                text = text.replace(/\s+/g, ' ');
+                
+                return text.trim();
+            }
+
+            renderMath() {
+                if (typeof renderMathInElement !== 'undefined') {
+                    renderMathInElement(this.articleContentElement, {
+                        delimiters: [
+                            {left: '$$', right: '$$', display: true},
+                            {left: '\\(', right: '\\)', display: false},
+                            {left: '\\[', right: '\\]', display: true}
+                        ],
+                        throwOnError: false
+                    });
+                }
+            }
+        }
+
+        // Initialize TeX Article System
+        let texSystem;
+        
+        // Window management
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize the TeX article system
+            texSystem = new TexArticleSystem();
+            
+            // Mobile-specific enhancements
+            function isMobile() {
+                return window.innerWidth <= 768;
+            }
+            
+            // Smooth scroll to sections when taskbar items are clicked on mobile
+            if (isMobile()) {
+                const taskbarItems = document.querySelectorAll('.taskbar-item');
+                const windows = {
+                    'Terminal': '.main-window',
+                    'SysMonitor': '.system-window', 
+                    'Editor': '.code-window',
+                    'Logs': '.log-window',
+                    'Articles': '.articles-window'
+                };
+                
+                taskbarItems.forEach(item => {
+                    item.addEventListener('click', function() {
+                        const windowSelector = windows[this.textContent];
+                        if (windowSelector) {
+                            const targetWindow = document.querySelector(windowSelector);
+                            if (targetWindow) {
+                                targetWindow.scrollIntoView({ 
+                                    behavior: 'smooth', 
+                                    block: 'start' 
+                                });
+                                
+                                // Update active state
+                                taskbarItems.forEach(i => i.classList.remove('active'));
+                                this.classList.add('active');
+                                
+                                // Flash the window header
+                                const header = targetWindow.querySelector('.window-header');
+                                header.style.background = 'rgba(0, 255, 102, 0.2)';
+                                setTimeout(() => {
+                                    header.style.background = '';
+                                }, 300);
+                            }
+                        }
+                    });
+                });
+                
+                // Update active taskbar item based on scroll position
+                function updateActiveSection() {
+                    const scrollPosition = window.scrollY + 100; // Offset for header
+                    let activeSection = null;
+                    
+                    Object.values(windows).forEach(selector => {
+                        const element = document.querySelector(selector);
+                        if (element && scrollPosition >= element.offsetTop) {
+                            activeSection = selector;
+                        }
+                    });
+                    
+                    if (activeSection) {
+                        taskbarItems.forEach(item => {
+                            item.classList.remove('active');
+                            if (windows[item.textContent] === activeSection) {
+                                item.classList.add('active');
+                            }
+                        });
+                    }
+                }
+                
+                // Throttled scroll listener
+                let scrollTimeout;
+                window.addEventListener('scroll', () => {
+                    if (scrollTimeout) {
+                        clearTimeout(scrollTimeout);
+                    }
+                    scrollTimeout = setTimeout(updateActiveSection, 50);
+                });
+            }
+            
+            // Handle orientation changes
+            window.addEventListener('orientationchange', function() {
+                setTimeout(() => {
+                    // Recalculate any necessary dimensions
+                    window.scrollTo(0, window.scrollY);
+                }, 100);
+            });
+            
+            // Your existing code continues...
+            // Make windows draggable
+            const windows = document.querySelectorAll('.window');
+            windows.forEach(window => {
+                const header = window.querySelector('.window-header');
+                let isDragging = false;
+                let currentX;
+                let currentY;
+                let initialX;
+                let initialY;
+                let xOffset = 0;
+                let yOffset = 0;
+
+                header.addEventListener('mousedown', function(e) {
+                    if (e.target.classList.contains('window-button')) return;
+                    
+                    isDragging = true;
+                    window.style.zIndex = 20;
+                    
+                    initialX = e.clientX - xOffset;
+                    initialY = e.clientY - yOffset;
+                });
+
+                document.addEventListener('mousemove', function(e) {
+                    if (isDragging) {
+                        e.preventDefault();
+                        currentX = e.clientX - initialX;
+                        currentY = e.clientY - initialY;
+                        xOffset = currentX;
+                        yOffset = currentY;
+                        
+                        window.style.transform = `translate3d(${currentX}px, ${currentY}px, 0)`;
+                    }
+                });
+
+                document.addEventListener('mouseup', function() {
+                    isDragging = false;
+                    window.style.zIndex = '';
+                });
+            });
+
+            // Window controls
+            document.querySelectorAll('.window-button').forEach(button => {
+                button.addEventListener('click', function() {
+                    const window = this.closest('.window');
+                    if (this.textContent === '×') {
+                        window.style.display = 'none';
+                    } else if (this.textContent === '_') {
+                        window.style.visibility = window.style.visibility === 'hidden' ? 'visible' : 'hidden';
+                    } else if (this.textContent === '□') {
+                        window.classList.toggle('maximized');
+                    }
+                });
+            });
+
+            // Update clock
+            function updateClock() {
+                const now = new Date();
+                const timeStr = now.toUTCString().split(' ')[4] + ' UTC';
+                document.getElementById('clock').textContent = timeStr;
+            }
+            
+            setInterval(updateClock, 1000);
+            updateClock();
+
+            // Cursor blinking
+            setInterval(() => {
+                const cursor = document.querySelector('.cursor');
+                if (cursor) {
+                    cursor.style.opacity = cursor.style.opacity === '0' ? '1' : '0';
+                }
+            }, 500);
+
+            // Random flicker effect
+            setInterval(() => {
+                if (Math.random() < 0.02) {
+                    document.body.style.animation = 'flicker 0.1s ease-in-out';
+                    setTimeout(() => {
+                        document.body.style.animation = 'flicker 0.15s infinite alternate';
+                    }, 100);
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

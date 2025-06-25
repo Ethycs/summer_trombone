@@ -1,0 +1,79 @@
+/* Main CSS - Modular Terminal Theme */
+
+/* Import all CSS modules in correct order */
+
+/* 1. Variables and base styles */
+@import url('./variables.css');
+@import url('./base/reset.css');
+@import url('./base/animations.css');
+
+/* 2. Component styles */
+@import url('./components/windows.css');
+@import url('./components/terminal.css');
+@import url('./components/articles.css');
+@import url('./components/taskbar.css');
+
+/* 3. Responsive styles (last to override) */
+@import url('./responsive.css');
+
+/* Additional utility classes */
+.hidden {
+    display: none !important;
+}
+
+.visible {
+    display: block !important;
+}
+
+.fade-in {
+    animation: fadeIn var(--transition-normal) ease-in;
+}
+
+.fade-out {
+    animation: fadeOut var(--transition-normal) ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+/* Focus styles for accessibility */
+*:focus {
+    outline: 2px solid var(--terminal-green);
+    outline-offset: 2px;
+}
+
+/* Selection styles */
+::selection {
+    background: rgba(0, 255, 102, 0.3);
+    color: var(--terminal-bright);
+}
+
+::-moz-selection {
+    background: rgba(0, 255, 102, 0.3);
+    color: var(--terminal-bright);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--terminal-bg);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--terminal-dim);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--terminal-green);
+}

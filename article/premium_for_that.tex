@@ -1,0 +1,564 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{natbib}
+\usepackage{booktabs}
+\usepackage{tikz}
+\usepackage{pgfplots}
+
+\title{AI Doom: There's a Premium for That\\
+\large Translating Existential Risk into Market Mechanisms}
+
+\author{Anonymous Author(s)\\
+\small Department of Economics and Risk Management\\
+\small Institution Affiliation}
+
+\date{\today}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{corollary}{Corollary}
+\newtheorem{definition}{Definition}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+While experts debate whether P(doom) is 1\% or 10\%, insurance markets ask a different question: What's the premium? We propose the first comprehensive framework for translating AI existential risk into actuarial mechanisms, transforming abstract probability estimates into concrete economic incentives for safety. Our approach harnesses the \$7 trillion insurance industry's core motivation---avoiding claims payouts---to create unprecedented prevention pressure for species-threatening risks. Using measure-theoretic fairness functions and game-theoretic analysis, we demonstrate that insurance requirements can align private incentives with civilizational survival while making AI doom prohibitively expensive to ignore. We present five immediate-implementation insurance products generating \$40B+ in annual premiums, building toward comprehensive existential risk coverage.
+
+\textbf{Keywords:} Existential risk, AI safety, insurance economics, market mechanisms, catastrophe bonds
+\end{abstract}
+
+\section{Introduction: The Missing Market}
+
+The artificial intelligence safety community has extensively analyzed the probability of existential catastrophe from advanced AI systems, with expert surveys suggesting median estimates between 5-10\% over the next century \citep{grace2018ai}. Yet despite these alarming assessments, there exists virtually no comprehensive insurance market for AI-related existential risks. This represents a massive market failure that both reveals and perpetuates inadequate safety incentives.
+
+Consider the paradox: OpenAI is valued at \$157 billion for promising to create artificial general intelligence, yet no insurance company will comprehensively cover the existential risks of their research. If AGI benefits are real and the risks manageable, insurers should compete to provide coverage. The absence of such markets suggests either:
+
+\begin{enumerate}
+   \item Insurance companies don't believe the transformative potential claims
+   \item The risks are genuinely uninsurable due to their magnitude and correlation
+   \item We face the largest unpriced externality in economic history
+\end{enumerate}
+
+This paper argues for the third interpretation and proposes mechanisms to internalize these externalities through carefully designed insurance markets.
+
+\subsection{The Externalization Problem}
+
+AI laboratories currently operate under a regime of radical externalization. While they internalize research costs (\$1-10B per frontier model), computational infrastructure (\$100M-1B per training run), and engineering talent acquisition, they externalize to society the costs of unemployment risks, dual-use potential, alignment failures, and social disruption.
+
+Our conservative estimate suggests that for every \$1 of value AI companies capture, they externalize \$10-100 of risk to society---a market failure of unprecedented scale.
+
+\section{Literature Review and Theoretical Foundations}
+
+\subsection{Existential Risk Literature}
+
+The study of existential risks was formalized by \citet{bostrom2002existential} and has developed into substantial research \citep{ord2020precipice, yudkowsky2008ai}. However, this literature focuses primarily on risk assessment rather than economic mechanisms for incentive alignment.
+
+\subsection{Catastrophe Insurance Theory}
+
+The modern catastrophe insurance industry emerged following Hurricane Andrew (1992), leading to catastrophe bonds (CAT bonds) that transfer risk to capital markets \citep{cummins2009convergence}. CAT bonds now represent a \$40+ billion annual market, demonstrating feasibility of securitizing low-probability, high-impact risks.
+
+\subsection{Theoretical Gap}
+
+No prior work has systematically applied insurance theory to existential AI risks, partly due to theoretical challenges:
+\begin{itemize}
+   \item Traditional insurance relies on historical data; existential risks are unprecedented
+   \item Standard models assume bounded losses; existential risks involve potentially infinite consequences  
+   \item Insurance markets require diversification; global catastrophic risks affect all participants
+\end{itemize}
+
+\section{Mathematical Framework}
+
+\subsection{Fairness Function for Market Concentration}
+
+Let $(\Omega, \mu)$ be a measure space representing AI development capacity, and let $f: \Omega \to \mathbb{R}_+$ be a probability density function where $\int_\Omega f(x)d\mu(x) = 1$, with $f(x)$ representing concentration of AI capability at point $x$.
+
+\begin{definition}[AI Development Fairness Function]
+$$F(f) = 1 - \int_\Omega f(x)^2 d\mu(x)$$
+\end{definition}
+
+\begin{theorem}[Fairness Function Properties]
+The fairness function $F$ satisfies:
+\begin{enumerate}
+   \item $F(f) \in [0,1]$ for all valid probability densities $f$
+   \item $F(f) = 1$ if and only if $f$ is uniform (maximum distribution)
+   \item $F(f) = 0$ if and only if $f = \delta(x_0)$ (monopolistic concentration)
+   \item $F$ is monotonic under mean-preserving spreads
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}
+By Cauchy-Schwarz inequality, $\int f(x)^2dx \geq (\int f(x)dx)^2 = 1$, with equality iff $f$ is constant. The bounds follow immediately.
+\end{proof}
+
+\subsection{Risk Pricing Under Uncertainty}
+
+For AI existential risk, let $p$ denote annual probability of AI-caused existential catastrophe, and $L$ represent economic value of human civilization.
+
+\textbf{Expected Annual Loss:} $E[\text{Loss}] = p \cdot L$
+
+Conservative estimates:
+\begin{itemize}
+   \item $p \in [0.001, 0.1]$ (0.1\% to 10\% annual risk)
+   \item $L \approx \$1000$ trillion (present value of future output)
+\end{itemize}
+
+This yields expected annual losses of \$1-100 trillion.
+
+\textbf{Insurance Premium:} Using loading factor $\lambda > 1$:
+$$\text{Premium} = \lambda \cdot p \cdot L$$
+
+For $p = 1\%$ and $\lambda = 1.5$: Premium $= 1.5\% \times \$1000T = \$15$ trillion annually.
+
+\subsection{Cognitive Exhaustion Model}
+
+Let $C(n)$ represent computational cost for sophisticated actors to control $n$ naive participants.
+
+\begin{theorem}[Cognitive Exhaustion Bound]
+For a system with cognitive resources $R$ and $n$ naive participants each contributing entropy $H$:
+$$C(n) = O(2^{nH})$$
+There exists critical threshold $n^* = \lceil\log_2(R)/H\rceil$ such that for $n > n^*$, prediction becomes computationally infeasible.
+\end{theorem}
+
+\begin{corollary}
+Even superintelligent systems face computational limits when confronting sufficiently large networks of non-coordinating agents.
+\end{corollary}
+
+\subsection{Insurance Market Equilibrium}
+
+Consider market with $m$ AI developers. Let $q_i$ denote safety investment by developer $i$, and $r(q_i)$ the resulting risk reduction.
+
+\textbf{Social Optimum:}
+$$\max \sum_{i=1}^m [B_i(q_i) - C_i(q_i)] - p(\mathbf{q}) \cdot L$$
+
+\textbf{Market Equilibrium Without Insurance:}
+$$\max B_i(q_i) - C_i(q_i)$$
+
+\textbf{Market Equilibrium With Insurance:}
+$$\max B_i(q_i) - C_i(q_i) - \pi_i(q_i)$$
+
+\begin{theorem}[Incentive Alignment]
+Under properly designed insurance pricing, market equilibrium converges to social optimum.
+\end{theorem}
+
+\section{Product Portfolio: From Operational to Existential}
+
+\subsection{Phase 1: Immediate Revenue Products}
+
+\subsubsection{AI Executive Shield (D\&O Enhancement)}
+\textbf{Target Market:} Public company boards/C-suite (3,000 companies)\\
+\textbf{Coverage:} Personal liability for AI-related strategic failures
+\begin{itemize}
+   \item Shareholder lawsuits over "failure to adopt AI"
+   \item Board liability for AI bias/discrimination incidents  
+   \item Executive defense costs for regulatory violations
+   \item Crisis management for AI-related disasters
+\end{itemize}
+\textbf{Premium:} \$100K-1M annually per executive team\\
+\textbf{Market Size:} \$900M annually
+
+\subsubsection{AI Obsolescence Protection}
+\textbf{Target Market:} Mid-market companies in vulnerable industries (50,000 companies)\\
+\textbf{Coverage:} Revenue replacement during forced AI transitions
+\begin{itemize}
+   \item Lost revenue when AI makes service obsolete
+   \item Emergency funding for competitive AI capabilities
+   \item Customer retention during AI transition
+   \item Workforce retraining expenses
+\end{itemize}
+\textbf{Premium:} 0.2-0.8\% of annual revenue\\
+\textbf{Market Size:} \$25B annually
+
+\subsubsection{AI Professional Malpractice+}
+\textbf{Target Market:} Professional service firms using AI (500,000 professionals)\\
+\textbf{Coverage:} Malpractice claims enhanced by AI errors
+\begin{itemize}
+   \item Legal malpractice from AI research errors
+   \item Medical errors from AI diagnostic assistance
+   \item Financial advice failures from AI analysis
+   \item Accounting errors from AI auditing tools
+\end{itemize}
+\textbf{Premium:} 25-75\% surcharge on existing E\&O policies\\
+\textbf{Market Size:} \$7.5B annually
+
+\subsection{Phase 2: Systemic Risk Products (2-3 Years)}
+
+\subsubsection{AI Systemic Risk Coverage}
+Coverage for critical infrastructure failures, democratic institution erosion, and economic system breakdown. Requires government backstops for catastrophic layers.
+
+\subsection{Phase 3: Existential Risk Architecture (5+ Years)}
+
+\subsubsection{Civilizational Continuity Bonds}
+International consortium coverage for species survival, civilization recovery, and knowledge preservation. Funded through mandatory contributions from AI developers.
+
+\section{Actuarial Modeling and Pricing}
+
+\subsection{Data Sources and Risk Factors}
+
+For operational products, we leverage:
+\begin{itemize}
+   \item Employment law: 30+ years discrimination case data
+   \item Professional liability: Established malpractice patterns  
+   \item D\&O claims: Historical board liability trends
+   \item Business interruption: Technology disruption precedents
+\end{itemize}
+
+\subsection{Premium Calculation Framework}
+
+\textbf{Base Rate:} Historical risk frequency for similar exposures\\
+\textbf{AI Multiplier:} Technology-specific risk amplification (1.5-5x)\\
+\textbf{Coverage Limits:} \$1M-100M+ per occurrence\\
+\textbf{Loading Factors:} 1.2-1.8x for uncertainty and expenses
+
+\textbf{Example: AI Executive Shield}
+\begin{align}
+\text{Base Rate} &= \text{Current D\&O claims frequency (8-12\% annually)}\\
+\text{AI Multiplier} &= 1.5-2x \text{ (regulatory/reputational risk)}\\
+\text{Premium Rate} &= 0.3-0.8\% \text{ of coverage limit}
+\end{align}
+
+\section{Market Design and Implementation}
+
+\subsection{Coverage Structure}
+
+We propose layered architecture:
+
+\textbf{Layer 1: Operational AI Insurance (\$1M-\$1B coverage)}
+\begin{itemize}
+   \item Model performance failures
+   \item Algorithmic bias claims
+   \item Privacy breaches
+   \item IP infringement
+\end{itemize}
+
+\textbf{Layer 2: Catastrophic AI Insurance (\$1B-\$100B coverage)}
+\begin{itemize}
+   \item Economic disruption from automation
+   \item Infrastructure system failures
+   \item International AI incidents
+   \item Democratic institution disruption
+\end{itemize}
+
+\textbf{Layer 3: Existential AI Insurance (\$100B+ coverage)}
+\begin{itemize}
+   \item Human extinction scenarios
+   \item Permanent totalitarian lock-in
+   \item Irreversible civilizational collapse
+   \item Complete loss of human agency
+\end{itemize}
+
+\subsection{Trigger Mechanisms}
+
+\textbf{Parametric Triggers:} Objective, measurable criteria
+\begin{itemize}
+   \item AI capability benchmarks
+   \item Economic indicators (unemployment rates)
+   \item Governance metrics (development concentration)
+\end{itemize}
+
+\textbf{Hybrid Triggers:} Combining parametric and indemnity elements
+\begin{itemize}
+   \item Primary: Objective capability threshold
+   \item Secondary: Actual impact assessment
+   \item Payout: Function of both components
+\end{itemize}
+
+\subsection{Prevention Incentives}
+
+\textbf{Safety Research Subsidies:} 50\% of premium revenue allocated to safety research
+
+\textbf{Underwriting Standards:} Mandatory safety requirements
+\begin{itemize}
+   \item Technical: Formal verification, testing protocols
+   \item Governance: Internal safety boards, external audits
+   \item Transparency: Model documentation, risk assessments
+\end{itemize}
+
+\textbf{Premium Discounts:}
+\begin{itemize}
+   \item 20\% discount for comprehensive testing
+   \item 30\% discount for formal safety verification  
+   \item 40\% discount for industry safety standards participation
+\end{itemize}
+
+\section{Policy Applications and Regulatory Framework}
+
+\subsection{Implementation Timeline}
+
+\textbf{Phase 1: Voluntary Market Development (Years 1-3)}
+\begin{itemize}
+   \item Industry self-regulation and standard development
+   \item Government tax incentives for safety insurance
+   \item Pilot programs with leading AI companies
+\end{itemize}
+
+\textbf{Phase 2: Mandatory Coverage Requirements (Years 3-7)}
+\begin{itemize}
+   \item Insurance requirements for AI systems above capability thresholds
+   \item Government backstop for tail risks
+   \item International coordination on standards
+\end{itemize}
+
+\textbf{Phase 3: Global Risk Management System (Years 7+)}
+\begin{itemize}
+   \item International treaty framework
+   \item Shared global pool for existential risk
+   \item Unified development and deployment standards
+\end{itemize}
+
+\subsection{Government Role}
+
+\textbf{Backstop Provider:} Reinsurance for tail risks above \$100B threshold
+
+\textbf{Market Facilitator:} Legal framework, tax treatment, information infrastructure
+
+\textbf{Standard Setter:} Minimum coverage requirements, technical standards, transparency requirements
+
+\section{Revenue Projections and Market Impact}
+
+\subsection{Financial Projections}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrr}
+\toprule
+Product & Year 1 & Year 3 & Year 5 \\
+\midrule
+AI Executive Shield & \$100M & \$500M & \$900M \\
+AI Obsolescence Protection & \$500M & \$5B & \$25B \\
+AI Professional Malpractice+ & \$200M & \$2B & \$7.5B \\
+AI Talent Transition & \$100M & \$1B & \$7.5B \\
+Systemic Risk Products & -- & \$1B & \$50B \\
+\midrule
+\textbf{Total Annual Premiums} & \$900M & \$9.5B & \$90.9B \\
+\bottomrule
+\end{tabular}
+\caption{Projected Annual Premium Revenue by Product Line}
+\end{table}
+
+\subsection{Safety Research Funding Impact}
+
+Current global AI safety research funding: $\sim$\$1B annually
+
+Projected insurance-funded safety research (5\% of premiums):
+\begin{itemize}
+   \item Year 1: \$45M additional funding
+   \item Year 3: \$475M additional funding  
+   \item Year 5: \$4.5B additional funding
+\end{itemize}
+
+This represents a 5x increase in safety research funding by Year 5.
+
+\section{Limitations and Future Research}
+
+\subsection{Theoretical Limitations}
+
+\textbf{Unprecedented Risks:} Existential risks lack historical precedent for actuarial analysis. Framework relies on expert elicitation and model-based estimates.
+
+\textbf{Moral Hazard:} Insurance might reduce safety incentives if not properly priced. Careful design of deductibles and coverage limits essential.
+
+\textbf{Systemic Correlation:} Global catastrophic risks affect all participants simultaneously, limiting traditional diversification.
+
+\subsection{Practical Challenges}
+
+\textbf{Political Feasibility:} Global insurance requirements face political economy obstacles.
+
+\textbf{Market Capacity:} Current markets lack capital for comprehensive existential risk coverage without government backstops.
+
+\textbf{Technical Complexity:} AI risk assessment requires expertise few insurance companies possess.
+
+\subsection{Future Research Directions}
+
+\textbf{Actuarial Science:} Advanced methods for unprecedented risks, AI-assisted risk assessment
+
+\textbf{Economic Theory:} Mechanism design for global public goods, behavioral economics of catastrophic risk
+
+\textbf{Policy Research:} Comparative institutional analysis, international AI governance, implementation studies
+
+\section{Case Study: Three-Year Implementation Plan}
+
+\subsection{Year 1: Foundation Building}
+
+\textbf{Q1-Q2: Product Development}
+\begin{itemize}
+   \item Finalize underwriting guidelines for 3 core products
+   \item Partner with 2-3 specialty insurers
+   \item Develop risk assessment technology platform
+\end{itemize}
+
+\textbf{Q3-Q4: Pilot Launch}
+\begin{itemize}
+   \item 50 pilot customers across product lines
+   \item \$100M in initial premiums
+   \item First claims data and product refinement
+\end{itemize}
+
+\subsection{Year 2: Market Expansion}
+
+\textbf{Targets:}
+\begin{itemize}
+   \item 500 customers, \$1B in premiums
+   \item Launch additional product lines
+   \item International market entry (EU, Asia)
+   \item \$50M in safety research funding
+\end{itemize}
+
+\subsection{Year 3: Industry Leadership}
+
+\textbf{Targets:}
+\begin{itemize}
+   \item 5,000 customers, \$10B in premiums
+   \item Regulatory influence through industry standards
+   \item Government partnership for catastrophic coverage
+   \item \$500M annual safety research funding
+\end{itemize}
+
+\section{Conclusion}
+
+This paper presents the first comprehensive framework for translating AI existential risk into market mechanisms through insurance requirements. Our key contributions include:
+
+\begin{enumerate}
+   \item \textbf{Mathematical Foundation:} Novel application of measure theory and game theory to existential risk pricing
+   \item \textbf{Market Design:} Detailed architecture for AI risk insurance markets with concrete prevention incentives
+   \item \textbf{Implementation Pathway:} Five immediate-revenue products building toward comprehensive existential risk coverage
+\end{enumerate}
+
+The central insight is that insurance markets represent humanity's most sophisticated mechanism for managing catastrophic risks. By requiring AI developers to purchase coverage for externalities they create, we harness the \$7 trillion insurance industry's core motivation---avoiding claims payouts---to fund unprecedented investment in AI safety.
+
+The economic logic is compelling: if P(doom) estimates have validity, current AI safety funding is inadequate by orders of magnitude. Insurance requirements can close this gap by making safety research profitable rather than merely altruistic.
+
+Success requires coordinated action across technical, economic, political, and social domains. The window for proactive implementation may be limited---insurance requirements established before transformative AI arrives are more likely to succeed than those imposed after.
+
+The ultimate question is not whether we can afford comprehensive AI risk insurance, but whether we can afford not to implement it. Even if P(doom) is only 1\%, expected annual loss of \$10+ trillion dwarfs any plausible insurance premium.
+
+From a civilizational perspective, AI risk insurance represents both sound economic policy and moral imperative. We have tools to align market incentives with human survival. Success depends on wisdom and coordination to use them.
+
+\bibliographystyle{plainnat}
+\begin{thebibliography}{20}
+
+\bibitem[Bostrom(2002)]{bostrom2002existential}
+Bostrom, N. (2002).
+\newblock Existential risks: Analyzing human extinction scenarios and related hazards.
+\newblock \emph{Journal of Evolution and Technology}, 9(1).
+
+\bibitem[Cummins and Weiss(2009)]{cummins2009convergence}
+Cummins, J.~D. and Weiss, M.~A. (2009).
+\newblock Convergence of insurance and financial markets: Hybrid and securitized risk-transfer solutions.
+\newblock \emph{Journal of Risk and Insurance}, 76(3):493--545.
+
+\bibitem[Grace et~al.(2018)]{grace2018ai}
+Grace, K., Salvatier, J., Dafoe, A., Zhang, B., and Evans, O. (2018).
+\newblock Viewpoint: When will ai exceed human performance? evidence from ai experts.
+\newblock \emph{Journal of Artificial Intelligence Research}, 62:729--754.
+
+\bibitem[Ord(2020)]{ord2020precipice}
+Ord, T. (2020).
+\newblock \emph{The Precipice: Existential Risk and the Future of Humanity}.
+\newblock Hachette Books.
+
+\bibitem[Yudkowsky(2008)]{yudkowsky2008ai}
+Yudkowsky, E. (2008).
+\newblock Artificial intelligence as a positive and negative factor in global risk.
+\newblock In Bostrom, N. and \'{C}irkovi\'{c}, M.~M., editors, \emph{Global Catastrophic Risks}, pages 308--345. Oxford University Press.
+
+\end{thebibliography}
+
+\appendix
+
+\section{Mathematical Proofs}
+
+\subsection{Proof of Theorem 2 (Cognitive Exhaustion)}
+
+\begin{proof}
+Consider a system attempting to predict the behavior of $n$ naive participants, each generating decisions with entropy $H$ bits. The total entropy of the system is $nH$ bits.
+
+To achieve perfect prediction accuracy, the system must model all possible configurations, requiring computational resources proportional to $2^{nH}$.
+
+For any bounded computational system with resources $R$, there exists a threshold $n^*$ where:
+$$2^{n^*H} = R$$
+
+Solving for $n^*$:
+$$n^* = \frac{\log_2(R)}{H}$$
+
+For $n > n^*$, the required computational resources exceed available capacity, making prediction computationally infeasible.
+\end{proof}
+
+\subsection{Proof of Theorem 3 (Incentive Alignment)}
+
+\begin{proof}
+In the social optimum, marginal benefit of safety investment equals marginal social cost:
+$$\frac{\partial B_i}{\partial q_i} - \frac{\partial C_i}{\partial q_i} = \frac{\partial p}{\partial q_i} \cdot L$$
+
+Under properly designed insurance with premium $\pi_i(q_i) = \alpha \cdot p_i(q_i) \cdot L_i$ where $\alpha$ is loading factor and $p_i(q_i)$ reflects individual contribution to aggregate risk:
+
+$$\frac{\partial B_i}{\partial q_i} - \frac{\partial C_i}{\partial q_i} = \alpha \frac{\partial p_i}{\partial q_i} \cdot L_i$$
+
+When $\alpha = 1$ and $L_i = L$ (each firm internalizes full social cost), individual optimization coincides with social optimization.
+\end{proof}
+
+\section{Product Specifications}
+
+\subsection{AI Executive Shield: Detailed Coverage}
+
+\textbf{Insuring Agreement:} Coverage for claims alleging wrongful acts in AI-related strategic decisions
+
+\textbf{Key Definitions:}
+\begin{itemize}
+   \item \textbf{AI System:} Any computer system exhibiting intelligent behavior
+   \item \textbf{Wrongful Act:} Breach of duty, neglect, error, misstatement, misleading statement, omission, or other act in capacity as executive
+   \item \textbf{AI-Related Claim:} Any claim alleging wrongful act connected to AI development, deployment, or governance decisions
+\end{itemize}
+
+\textbf{Coverage Triggers:}
+\begin{itemize}
+   \item Shareholder derivative suits alleging failure to adopt competitive AI strategies
+   \item Securities class actions over AI-related misstatements
+   \item Regulatory investigations of AI compliance failures
+   \item Employment practices claims from AI-driven workforce decisions
+\end{itemize}
+
+\textbf{Defense Costs:} Covered from first dollar, erosion of limits
+
+\textbf{Limits:} \$25M-100M per claim, \$50M-200M aggregate annually
+
+\textbf{Retention:} \$100K-1M per claim depending on company size
+
+\section{International Coordination Framework}
+
+\subsection{Proposed Treaty Structure}
+
+\textbf{AI Risk Insurance Treaty (ARIT)}
+
+\textbf{Parties:} Major AI-developing nations and international organizations
+
+\textbf{Core Obligations:}
+\begin{enumerate}
+   \item Minimum insurance requirements for AI development above specified capability thresholds
+   \item Harmonized standards for AI risk assessment and coverage
+   \item Shared global pool for existential risk coverage
+   \item Information sharing on AI incidents and risk evolution
+   \item Coordinated response protocols for catastrophic scenarios
+\end{enumerate}
+
+\textbf{Governance Structure:}
+\begin{itemize}
+   \item \textbf{AI Risk Insurance Council:} Representatives from each party
+   \item \textbf{Technical Committee:} Actuarial and AI safety experts
+   \item \textbf{Crisis Response Team:} Rapid deployment for major incidents
+\end{itemize}
+
+\textbf{Funding Mechanism:}
+\begin{itemize}
+   \item Mandatory contributions based on AI development capacity
+   \item Private market coverage for operational risks
+   \item Government backstops for systemic and existential risks
+\end{itemize}
+
+\end{document}

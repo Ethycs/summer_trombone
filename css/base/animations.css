@@ -1,0 +1,82 @@
+/* Terminal Animations and Effects */
+
+/* CRT Flicker Animation */
+@keyframes flicker {
+    0% { opacity: 1; }
+    98% { opacity: 1; }
+    99% { opacity: 0.98; }
+    100% { opacity: 1; }
+}
+
+/* Scanlines Animation */
+@keyframes scanlines {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(2px); }
+}
+
+/* Cursor Blink Animation */
+@keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+}
+
+/* CRT Scanlines Effect */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: linear-gradient(
+        transparent 50%,
+        var(--scanline-color) 50%
+    );
+    background-size: 100% 2px;
+    pointer-events: none;
+    z-index: var(--z-scanlines);
+    animation: scanlines 0.1s linear infinite;
+}
+
+/* Terminal Cursor */
+.cursor {
+    background: var(--terminal-green);
+    animation: blink 1s infinite;
+    width: 8px;
+    height: 14px;
+    display: inline-block;
+    font-family: var(--font-stack);
+}
+
+/* Glow Effects */
+.glow-small {
+    text-shadow: var(--glow-small);
+}
+
+.glow-medium {
+    text-shadow: var(--glow-medium);
+}
+
+.glow-large {
+    text-shadow: var(--glow-large);
+}
+
+/* Hover Glow Animation */
+.hover-glow {
+    transition: text-shadow var(--transition-normal);
+}
+
+.hover-glow:hover {
+    text-shadow: var(--glow-large);
+}
+
+/* Window Flash Effect */
+@keyframes window-flash {
+    0% { background: var(--window-title-bg); }
+    50% { background: rgba(0, 255, 102, 0.2); }
+    100% { background: var(--window-title-bg); }
+}
+
+.flash {
+    animation: window-flash 0.3s ease;
+}
