@@ -108,17 +108,20 @@ export class TexParser {
                 return placeholder;
             });
 
-            // Protect \(...\) inline math
-            text = text.replace(/\\\(([\s\S]*?)\\\)/g, (match, content) => {
+            // Protect \( … \) inline math – captures an optional trailing line-break.
+            text = text.replace(
+            /\\\(([\s\S]*?)(?<!\\)\\\)(\\\\\s*)?/g,           // ①
+            (_, body, breaker = '') => {
                 const placeholder = `__INLINE_MATH_${this.mathCounter++}__`;
-                this.mathStore[placeholder] = match;
+                this.mathStore[placeholder] = `\\(${body}\\)`;
                 protectedCount++;
-                return placeholder;
-            });
+                return placeholder + breaker;                  // ②
+            }
+            );
 
             // Protect $...$ inline math (improved regex)
             // Negative lookbehind for backslash, avoid currency patterns
-            const inlineMathRegex = /(?<!\\)\$(?!\s)(?!\d+\.?\d*\s)([^\$\n]+?)\$/g;
+            const inlineMathRegex = /(?<!\\)\$((?:\\\$|[^$])*)(?<!\\)\$/g;
             
             text = text.replace(inlineMathRegex, (match, content) => {
                 // Additional validation
@@ -331,15 +334,30 @@ export class TexParser {
                 para = para.trim();
                 if (!para) continue;
 
-                if (para.startsWith('__DISPLAY_MATH_') || 
-                    para.match(/^<(h[1-4]|div|ol|ul|table)/)) {
-                    html += para;
+                if (para.startsWith('__DISPLAY_MATH_')) {
+                    html += para + '\n';
+                    continue;
+                }
+
+                const lines = para.split('\n');
+                const processedLines = lines.map(line => {
+                    if (line.match(/^<(h[1-4]|div|ol|ul|table|li)/)) {
+                        return line; // Don't process lines that are already HTML blocks
+                    }
+                    return this.processTexText(line);
+                });
+                
+                const blockContent = processedLines.join('');
+
+                // Wrap in <p> only if it's not already a block element.
+                if (blockContent.match(/^<(h[1-4]|div|ol|ul|table)/)) {
+                    html += blockContent + '\n';
                 } else {
-                    html += `<p>${this.processTexText(para)}</p>`;
+                    html += `<p>${blockContent}</p>\n`;
                 }
             }
             
-            return html;
+            return html.trim();
         } catch (error) {
             this.logError('parseParagraphs', error);
             return text;
@@ -410,6 +428,7 @@ export class TexParser {
 
     // D. Line breaks
     text = text.replace(/\\\\/g, '<br>');
+    text = text.replace(/\\newblock/g, ' ');
 
     // E.  escaped specials
     const specials = { '#':'&#35;','$':'&#36;','%':'&#37;','&':'&',
