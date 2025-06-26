@@ -1,12 +1,11 @@
 /**
- * TexParser - Enhanced robust TeX parser with comprehensive error handling
+ * TexParser - A dedicated class for parsing TeX content into HTML.
  */
 export class TexParser {
     constructor() {
         this.mathStore = {};
         this.mathCounter = 0;
         this.errors = [];
-        this.debugMode = false; // Set to true for verbose logging
     }
 
     parse(texContent) {
@@ -15,36 +14,24 @@ export class TexParser {
         this.mathCounter = 0;
         this.errors = [];
 
-        console.log('[TexParser] Starting parse...');
-
         try {
             let html = '';
             const sections = texContent.split(/(?=\\section)/);
 
-            for (let i = 0; i < sections.length; i++) {
-                const section = sections[i];
+            for (let section of sections) {
                 if (section.trim()) {
-                    if (this.debugMode) {
-                        console.log(`[TexParser] Processing section ${i + 1}/${sections.length}`);
-                    }
                     html += this.processSection(section);
                 }
             }
 
             if (this.errors.length > 0) {
-                console.warn('[TexParser] Parse completed with errors:', {
-                    errorCount: this.errors.length,
-                    errors: this.errors
-                });
-            } else {
-                console.log('[TexParser] Parse completed successfully');
+                console.warn('[TexParser] Parse completed with errors:', this.errors);
             }
-
+            
             return html;
         } catch (error) {
-            console.error('[TexParser] Fatal parsing error:', error);
-            this.logError('parse', error, texContent.substring(0, 200));
-            return '<div class="tex-parser-error">Failed to parse TeX content. See console for details.</div>';
+            this.logError('parse', error);
+            return '<div class="tex-error">Error parsing TeX content</div>';
         }
     }
 
@@ -64,7 +51,7 @@ export class TexParser {
 
             return `<div class="article-section">${contentHtml}</div>`;
         } catch (error) {
-            this.logError('processSection', error, section.substring(0, 100));
+            this.logError('processSection', error);
             return `<div class="article-section tex-error">Error processing section</div>`;
         }
     }
@@ -174,45 +161,23 @@ export class TexParser {
         }
     }
 
+
     parseBlockElements(text) {
-        const steps = [
-            { name: 'headings', fn: () => this.parseHeadings(text) },
-            { name: 'theorems', fn: () => this.parseTheorems(text) },
-            { name: 'lists', fn: () => this.parseLists(text) },
-            { name: 'tables', fn: () => this.parseTables(text) },
-            { name: 'quotes', fn: () => this.parseQuotes(text) },
-            { name: 'abstracts', fn: () => this.parseAbstracts(text) }
-        ];
-
-        for (const step of steps) {
-            try {
-                text = step.fn();
-            } catch (error) {
-                this.logError(`parseBlockElements.${step.name}`, error);
-            }
-        }
-
+        text = this.parseHeadings(text);
+        text = this.parseTheorems(text);
+        text = this.parseLists(text);
+        text = this.parseTables(text);
+        text = this.parseBibliography(text);
+        text = this.parseAppendix(text);
         return text;
     }
 
     parseHeadings(text) {
         try {
-            // Support optional arguments and labels
-            const headingPatterns = [
-                { regex: /\\section(?:\[[^\]]*\])?\{([^}]+)\}(?:\s*\\label\{[^}]+\})?/g, tag: 'h1' },
-                { regex: /\\subsection(?:\[[^\]]*\])?\{([^}]+)\}(?:\s*\\label\{[^}]+\})?/g, tag: 'h2' },
-                { regex: /\\subsubsection(?:\[[^\]]*\])?\{([^}]+)\}(?:\s*\\label\{[^}]+\})?/g, tag: 'h3' },
-                { regex: /\\paragraph\{([^}]+)\}/g, tag: 'h4' },
-                { regex: /\\subparagraph\{([^}]+)\}/g, tag: 'h5' }
-            ];
-
-            for (const { regex, tag } of headingPatterns) {
-                text = text.replace(regex, (match, content) => {
-                    const processedContent = this.processInlineTeX(content);
-                    return `<${tag}>${processedContent}</${tag}>`;
-                });
-            }
-
+            text = text.replace(/\\section\{([^}]+)\}/g, '<h1>$1</h1>');
+            text = text.replace(/\\subsection\{([^}]+)\}/g, '<h2>$1</h2>');
+            text = text.replace(/\\subsubsection\{([^}]+)\}/g, '<h3>$1</h3>');
+            text = text.replace(/\\paragraph\{([^}]+)\}/g, '<h4>$1</h4>');
             return text;
         } catch (error) {
             this.logError('parseHeadings', error);
@@ -222,31 +187,15 @@ export class TexParser {
 
     parseTheorems(text) {
         try {
-            const theoremEnvs = [
-                'theorem', 'definition', 'lemma', 'corollary', 
-                'proposition', 'proof', 'remark', 'example',
-                'claim', 'fact', 'observation', 'note'
-            ].join('|');
-
-            const theoremRegex = new RegExp(
-                `\\\\begin\\{(${theoremEnvs})\\}(?:\\[([^\\]]*)\\])?([\\s\\S]*?)\\\\end\\{\\1\\}`,
-                'g'
-            );
-
+            const theoremRegex = /\\begin\{(theorem|definition|lemma|corollary|proposition|proof|remark|example)\}(?:\[([^\]]*)\])?([\s\S]*?)\\end\{\1\}/g;
+            
             text = text.replace(theoremRegex, (match, env, optTitle, content) => {
                 const baseTitle = env.charAt(0).toUpperCase() + env.slice(1);
                 const title = optTitle ? `${baseTitle} (${optTitle})` : baseTitle;
                 const className = env === 'proof' ? 'article-proof' : 'article-theorem';
-                
-                // Process content recursively
-                const processedContent = this.processInlineTeX(content.trim());
-                
-                return `<div class="${className}">` +
-                       `<div class="article-theorem-title">${title}</div>` +
-                       `<div class="article-theorem-content">${processedContent}</div>` +
-                       `</div>`;
+                return `<div class="${className}"><div class="article-theorem-title">${title}</div>${this.processTexText(content.trim())}</div>`;
             });
-
+            
             return text;
         } catch (error) {
             this.logError('parseTheorems', error);
@@ -256,32 +205,12 @@ export class TexParser {
 
     parseLists(text) {
         try {
-            // Handle enumerate
-            text = text.replace(/\\begin\{enumerate\}([\s\S]*?)\\end\{enumerate\}/g, (match, content) => {
-                return '<ol>' + this.processListItems(content) + '</ol>';
-            });
-
-            // Handle itemize
-            text = text.replace(/\\begin\{itemize\}([\s\S]*?)\\end\{itemize\}/g, (match, content) => {
-                return '<ul>' + this.processListItems(content) + '</ul>';
-            });
-
-            // Handle description lists
-            text = text.replace(/\\begin\{description\}([\s\S]*?)\\end\{description\}/g, (match, content) => {
-                const items = content.split(/\\item\[([^\]]*)\]/);
-                let html = '<dl>';
-                
-                for (let i = 1; i < items.length; i += 2) {
-                    const term = items[i];
-                    const desc = items[i + 1] || '';
-                    html += `<dt>${this.processInlineTeX(term)}</dt>`;
-                    html += `<dd>${this.processInlineTeX(desc.trim())}</dd>`;
-                }
-                
-                html += '</dl>';
-                return html;
-            });
-
+            text = text.replace(/\\begin\{enumerate\}([\s\S]*?)\\end\{enumerate\}/g,
+                (match, listContent) => '<ol>' + this.processListItems(listContent) + '</ol>');
+            
+            text = text.replace(/\\begin\{itemize\}([\s\S]*?)\\end\{itemize\}/g,
+                (match, listContent) => '<ul>' + this.processListItems(listContent) + '</ul>');
+            
             return text;
         } catch (error) {
             this.logError('parseLists', error);
@@ -290,37 +219,36 @@ export class TexParser {
     }
 
     processListItems(listContent) {
-        try {
-            // Split by \item, handling optional arguments
-            const items = listContent.split(/\\item(?:\[[^\]]*\])?/);
-            
-            return items
-                .filter(item => item.trim())
-                .map(item => {
-                    const processedItem = this.processInlineTeX(item.trim());
-                    return `<li>${processedItem}</li>`;
-                })
-                .join('');
-        } catch (error) {
-            this.logError('processListItems', error);
-            return '';
-        }
+        const items = listContent.split(/\\item/);
+        return items.filter(item => item.trim())
+                   .map(item => `<li>${this.processTexText(item.trim())}</li>`)
+                   .join('');
     }
 
     parseTables(text) {
         try {
-            // Handle table environment
-            const tableRegex = /\\begin\{table\}(?:\[[^\]]*\])?([\s\S]*?)\\end\{table\}/g;
+            const tableRegex = /\\begin\{table\}([\s\S]*?)\\end\{table\}/g;
             text = text.replace(tableRegex, (match, content) => {
-                return this.parseTableContent(content, true);
-            });
+                // Extract caption if present
+                let caption = '';
+                const captionMatch = content.match(/\\caption\{([^}]*)\}/);
+                if (captionMatch) {
+                    caption = `<caption>${this.processTexText(captionMatch[1])}</caption>`;
+                    content = content.replace(captionMatch[0], '');
+                }
 
-            // Handle standalone tabular
-            const tabularRegex = /\\begin\{tabular\}\{[^}]+\}([\s\S]*?)\\end\{tabular\}/g;
-            text = text.replace(tabularRegex, (match) => {
-                return this.parseTableContent(match, false);
-            });
+                // Remove table-specific commands
+                content = content.replace(/\\toprule|\\midrule|\\bottomrule|\\hline/g, '');
+                content = content.replace(/\\label\{[^}]*\}/g, '');
 
+                const tabularRegex = /\\begin\{tabular\}\{[^}]+\}([\s\S]*?)\\end\{tabular\}/;
+                const tabularMatch = content.match(tabularRegex);
+                if (!tabularMatch) return '';
+
+                const tableContent = tabularMatch[1];
+                return `<table class="article-table">${caption}${this.processTableRows(tableContent)}</table>`;
+            });
+            
             return text;
         } catch (error) {
             this.logError('parseTables', error);
@@ -328,106 +256,60 @@ export class TexParser {
         }
     }
 
-    parseTableContent(content, hasWrapper) {
-        try {
-            // Extract caption
-            let caption = '';
-            const captionMatch = content.match(/\\caption\{([^}]*(?:\{[^}]*\}[^}]*)*)\}/);
-            if (captionMatch) {
-                caption = `<caption>${this.processInlineTeX(captionMatch[1])}</caption>`;
-                content = content.replace(captionMatch[0], '');
-            }
-
-            // Remove table formatting commands
-            content = content.replace(/\\(toprule|midrule|bottomrule|hline|cline\{[^}]*\})/g, '');
-            content = content.replace(/\\label\{[^}]*\}/g, '');
-
-            // Extract tabular content
-            const tabularMatch = content.match(/\\begin\{tabular\}\{[^}]+\}([\s\S]*?)\\end\{tabular\}/);
-            if (!tabularMatch) {
-                this.logError('parseTableContent', 'No tabular environment found');
-                return '';
-            }
-
-            const tableContent = tabularMatch[1];
-            const tableRows = this.processTableRows(tableContent);
-
-            return `<table class="article-table">${caption}${tableRows}</table>`;
-        } catch (error) {
-            this.logError('parseTableContent', error);
-            return '';
-        }
-    }
-
     processTableRows(tableContent) {
-        try {
-            const rows = tableContent.trim().split(/\\\\/);
-            let html = '';
-            let isHeader = true;
+        const rows = tableContent.trim().split(/\\\\/);
+        let html = '';
+        let isFirstRow = true;
 
-            for (const row of rows) {
-                const trimmedRow = row.trim();
-                
-                // Skip empty rows or formatting commands
-                if (!trimmedRow || trimmedRow.match(/^\\(hline|midrule|toprule|bottomrule)$/)) {
-                    if (html && isHeader) {
-                        isHeader = false; // Switch to body after header
-                    }
-                    continue;
-                }
-
-                // Split cells, handling escaped &
-                const cells = trimmedRow.split(/(?<!\\)&/).map(cell => cell.replace(/\\&/g, '&'));
-                const tag = isHeader ? 'th' : 'td';
-                
-                html += '<tr>';
-                for (const cell of cells) {
-                    const processedCell = this.processInlineTeX(cell.trim());
-                    html += `<${tag}>${processedCell}</${tag}>`;
-                }
-                html += '</tr>';
+        for (const row of rows) {
+            if (row.trim() === '') continue;
+            const cells = row.split('&');
+            const tag = isFirstRow ? 'th' : 'td';
+            html += '<tr>';
+            for (const cell of cells) {
+                html += `<${tag}>${this.processTexText(cell.trim())}</${tag}>`;
             }
+            html += '</tr>';
+            isFirstRow = false;
+        }
+        return html;
+    }
 
-            return html;
+    parseBibliography(text) {
+        try {
+            text = text.replace(/\\bibliographystyle\{[^}]+\}/g, '');
+            
+            text = text.replace(/\\begin\{thebibliography\}\{[^}]*\}([\s\S]*?)\\end\{thebibliography\}/g,
+                (match, content) => {
+                    const items = content.split(/\\bibitem/);
+                    let html = '<div class="bibliography"><h2>References</h2><ol>';
+                    
+                    for (let i = 1; i < items.length; i++) {
+                        const item = items[i];
+                        const labelMatch = item.match(/^\[([^\]]+)\]\{([^}]+)\}/);
+                        if (labelMatch) {
+                            const contentText = item.substring(labelMatch[0].length).trim();
+                            html += `<li>${this.processTexText(contentText)}</li>`;
+                        }
+                    }
+                    
+                    html += '</ol></div>';
+                    return html;
+                });
+            
+            return text;
         } catch (error) {
-            this.logError('processTableRows', error);
-            return '';
+            this.logError('parseBibliography', error);
+            return text;
         }
     }
 
-    parseQuotes(text) {
+    parseAppendix(text) {
         try {
-            text = text.replace(/\\begin\{quote\}([\s\S]*?)\\end\{quote\}/g, (match, content) => {
-                return `<blockquote>${this.processInlineTeX(content)}</blockquote>`;
-            });
-
-            text = text.replace(/\\begin\{quotation\}([\s\S]*?)\\end\{quotation\}/g, (match, content) => {
-                return `<blockquote class="quotation">${this.processInlineTeX(content)}</blockquote>`;
-            });
-
+            text = text.replace(/\\appendix/g, '<div class="appendix"></div>');
             return text;
         } catch (error) {
-            this.logError('parseQuotes', error);
-            return text;
-        }
-    }
-
-    parseAbstracts(text) {
-        try {
-            text = text.replace(/\\begin\{abstract\}([\s\S]*?)\\end\{abstract\}/g, (match, content) => {
-                const processedContent = this.processInlineTeX(content);
-                return `<div class="article-abstract"><h2>Abstract</h2>${processedContent}</div>`;
-            });
-
-            // Handle inline abstract command
-            text = text.replace(/\\abstract\{([\s\S]*?)\}/g, (match, content) => {
-                const processedContent = this.processInlineTeX(content);
-                return `<div class="article-abstract"><h2>Abstract</h2>${processedContent}</div>`;
-            });
-
-            return text;
-        } catch (error) {
-            this.logError('parseAbstracts', error);
+            this.logError('parseAppendix', error);
             return text;
         }
     }
@@ -436,20 +318,19 @@ export class TexParser {
         try {
             const paragraphs = text.split(/\n\s*\n/);
             let html = '';
-
+            
             for (let para of paragraphs) {
                 para = para.trim();
                 if (!para) continue;
 
-                // Check if it's already a block element or math placeholder
-                if (para.match(/^(__DISPLAY_MATH_\d+__|<(?:h[1-6]|div|ol|ul|table|figure|blockquote|dl))/)) {
+                if (para.startsWith('__DISPLAY_MATH_') || 
+                    para.match(/^<(h[1-4]|div|ol|ul|table)/)) {
                     html += para;
                 } else {
-                    const processedPara = this.processInlineTeX(para);
-                    html += `<p>${processedPara}</p>`;
+                    html += `<p>${this.processTexText(para)}</p>`;
                 }
             }
-
+            
             return html;
         } catch (error) {
             this.logError('parseParagraphs', error);
@@ -457,103 +338,53 @@ export class TexParser {
         }
     }
 
-    processInlineTeX(text) {
+    processTexText(text) {
         try {
             // Handle escaped characters
-            text = text.replace(/\\([#$%&_{}~^])/g, '$1');
-
-            // Text formatting
-            const formattingCommands = [
-                { regex: /\\textbf\{([^{}]*(?:\{[^{}]*\}[^{}]*)*)\}/g, replacement: '<strong>$1</strong>' },
-                { regex: /\\textit\{([^{}]*(?:\{[^{}]*\}[^{}]*)*)\}/g, replacement: '<em>$1</em>' },
-                { regex: /\\emph\{([^{}]*(?:\{[^{}]*\}[^{}]*)*)\}/g, replacement: '<em>$1</em>' },
-                { regex: /\\texttt\{([^{}]*(?:\{[^{}]*\}[^{}]*)*)\}/g, replacement: '<code>$1</code>' },
-                { regex: /\\textsc\{([^{}]*(?:\{[^{}]*\}[^{}]*)*)\}/g, replacement: '<span class="small-caps">$1</span>' },
-                { regex: /\\underline\{([^{}]*(?:\{[^{}]*\}[^{}]*)*)\}/g, replacement: '<u>$1</u>' },
-                { regex: /\\textrm\{([^{}]*(?:\{[^{}]*\}[^{}]*)*)\}/g, replacement: '<span class="tex-rm">$1</span>' },
-                { regex: /\\textsf\{([^{}]*(?:\{[^{}]*\}[^{}]*)*)\}/g, replacement: '<span class="tex-sf">$1</span>' }
-            ];
-
-            for (const { regex, replacement } of formattingCommands) {
-                text = text.replace(regex, replacement);
-            }
-
+            text = text.replace(/\\([#$%&_{}])/g, '$1');
+            
+            // Text formatting commands
+            text = text.replace(/\\textbf\{([^}]+)\}/g, '<strong>$1</strong>');
+            text = text.replace(/\\textit\{([^}]+)\}/g, '<em>$1</em>');
+            text = text.replace(/\\emph\{([^}]+)\}/g, '<em>$1</em>');
+            text = text.replace(/\\texttt\{([^}]+)\}/g, '<code>$1</code>');
+            
             // Citations
-            text = text.replace(/\\cite(?:p|t|author|year|yearpar)?\{([^}]+)\}/g, '<span class="citation">[$1]</span>');
-
-            // References
-            text = text.replace(/\\ref\{([^}]+)\}/g, '<a href="#$1" class="ref">$1</a>');
-            text = text.replace(/\\eqref\{([^}]+)\}/g, '<a href="#$1" class="ref">($1)</a>');
-            text = text.replace(/\\label\{([^}]+)\}/g, '<span id="$1"></span>');
-
-            // URLs
-            text = text.replace(/\\url\{([^}]+)\}/g, '<a href="$1">$1</a>');
-            text = text.replace(/\\href\{([^}]+)\}\{([^}]+)\}/g, '<a href="$1">$2</a>');
-
-            // Footnotes
-            text = text.replace(/\\footnote\{([^{}]*(?:\{[^{}]*\}[^{}]*)*)\}/g,
-                '<sup class="footnote">*</sup><span class="footnote-content">$1</span>');
-
-            // Line breaks and spacing
+            text = text.replace(/\\cite[pt]?\{([^}]+)\}/g, '<span class="citation">[$1]</span>');
+            
+            // Line breaks
             text = text.replace(/\\\\/g, '<br>');
             text = text.replace(/\\newline/g, '<br>');
-            text = text.replace(/\\par\b/g, '</p><p>');
-
-            // Remove spacing commands
-            text = text.replace(/\\(vspace|hspace)\{[^}]*\}/g, '');
-            text = text.replace(/\\(bigskip|medskip|smallskip|noindent)/g, '');
-
+            
+            // Remove other common commands
+            text = text.replace(/\\newblock/g, ' ');
+            text = text.replace(/\\noindent/g, '');
+            
             // Special characters
-            text = text.replace(/\\ldots/g, '…');
-            text = text.replace(/\\dots/g, '…');
-            text = text.replace(/\\quad/g, ' ');
-            text = text.replace(/\\qquad/g, '  ');
-            text = text.replace(/\\,/g, ' ');
-            text = text.replace(/\\ /g, ' ');
-            text = text.replace(/\\~/g, '&nbsp;');
-
+            text = text.replace(/~/g, '&nbsp;');
+            text = text.replace(/---/g, '—');
+            text = text.replace(/--/g, '–');
+            
             return text;
         } catch (error) {
-            this.logError('processInlineTeX', error, text.substring(0, 50));
+            this.logError('processTexText', error, text.substring(0, 50));
             return text;
         }
     }
 
-    // Alias for backward compatibility
-    processTexText(text) {
-        return this.processInlineTeX(text);
+    // Backward compatibility
+    processInlineTeX(text) {
+        return this.processTexText(text);
     }
 
     logError(method, error, context = '') {
         const errorInfo = {
             method: `TexParser.${method}`,
             message: error.message || String(error),
-            stack: error.stack,
-            context: context ? context.substring(0, 200) + '...' : undefined,
-            timestamp: new Date().toISOString()
+            context: context ? context.substring(0, 100) + '...' : undefined
         };
-
+        
         this.errors.push(errorInfo);
         console.error(`[TexParser.${method}] Error:`, errorInfo);
-    }
-
-    // Debug helper
-    enableDebugMode() {
-        this.debugMode = true;
-        console.log('[TexParser] Debug mode enabled');
-    }
-
-    disableDebugMode() {
-        this.debugMode = false;
-        console.log('[TexParser] Debug mode disabled');
-    }
-
-    // Get parsing statistics
-    getParsingStats() {
-        return {
-            mathExpressions: Object.keys(this.mathStore).length,
-            errors: this.errors.length,
-            errorDetails: this.errors
-        };
     }
 }
