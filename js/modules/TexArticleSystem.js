@@ -136,7 +136,11 @@ export class TexArticleSystem {
                     delimiters: [
                         {left: '$$', right: '$$', display: true},
                         {left: '\\(', right: '\\)', display: false},
-                        {left: '\\[', right: '\\]', display: true}
+                        {left: '\\[', right: '\\]', display: true},
+                        {left: '\\begin{equation}', right: '\\end{equation}', display: true},
+                        {left: '\\begin{align}', right: '\\end{align}', display: true},
+                        {left: '\\begin{gather}', right: '\\end{gather}', display: true},
+                        {left: '\\begin{displaymath}', right: '\\end{displaymath}', display: true}
                     ],
                     throwOnError: false
                 });

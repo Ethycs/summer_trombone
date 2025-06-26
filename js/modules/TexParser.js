@@ -1,6 +1,14 @@
 /**
  * TexParser - A dedicated class for parsing TeX content into HTML.
  */
+
+const INLINE_CMD = {
+  textbf : ['<strong>','</strong>'],
+  emph   : ['<em>',     '</em>'],
+  textit : ['<em>',     '</em>'],
+  texttt : ['<code>',   '</code>']
+};
+
 export class TexParser {
     constructor() {
         this.mathStore = {};
@@ -338,44 +346,76 @@ export class TexParser {
         }
     }
 
-    processTexText(text) {
-        try {
-            // Handle escaped characters
-            text = text.replace(/\\([#$%&_{}])/g, '$1');
-            
-            // Text formatting commands
-            text = text.replace(/\\textbf\{([^}]+)\}/g, '<strong>$1</strong>');
-            text = text.replace(/\\textit\{([^}]+)\}/g, '<em>$1</em>');
-            text = text.replace(/\\emph\{([^}]+)\}/g, '<em>$1</em>');
-            text = text.replace(/\\texttt\{([^}]+)\}/g, '<code>$1</code>');
-            
-            // Citations
-            text = text.replace(/\\cite[pt]?\{([^}]+)\}/g, '<span class="citation">[$1]</span>');
-            
-            // Line breaks
-            text = text.replace(/\\\\/g, '<br>');
-            text = text.replace(/\\newline/g, '<br>');
-            
-            // Remove other common commands
-            text = text.replace(/\\newblock/g, ' ');
-            text = text.replace(/\\noindent/g, '');
-            
-            // Special characters
-            text = text.replace(/~/g, '&nbsp;');
-            text = text.replace(/---/g, '—');
-            text = text.replace(/--/g, '–');
-            
-            return text;
-        } catch (error) {
-            this.logError('processTexText', error, text.substring(0, 50));
-            return text;
-        }
-    }
+  /* ----------------------------------------------------------------
+   * 1.  N E W   M E T H O D  –   balanced–brace inline scanner
+   * ---------------------------------------------------------------- */
+  parseInline(src) {
+    let i = 0, out = '';
 
-    // Backward compatibility
-    processInlineTeX(text) {
-        return this.processTexText(text);
+    const eatBlock = () => {           // nested-brace helper
+      let depth = 0, buf = '';
+      while (i < src.length) {
+        const ch = src[i++];
+        if (ch === '\\') { buf += ch + (src[i] ?? ''); i++;          }
+        else if (ch === '{') { depth++; buf += ch + eatBlock();      }
+        else if (ch === '}') { if (depth-- === 0) return buf; buf+=ch}
+        else               { buf += ch;                              }
+      }
+      throw new Error('Unbalanced brace in inline command');
+    };
+
+    while (i < src.length) {
+      if (src[i] === '\\') {
+        const m = /^\\([A-Za-z]+)\s*\{/.exec(src.slice(i));
+        if (m && INLINE_CMD[m[1]]) {
+          const cmd = m[1];
+          i += m[0].length;                     // skip “\cmd{”
+          const inner = eatBlock();
+          out += INLINE_CMD[cmd][0]
+               + this.parseInline(inner)        // recursion!
+               + INLINE_CMD[cmd][1];
+          i++;                                  // past the closing '}'
+          continue;
+        }
+      }
+      out += src[i++];
     }
+    return out;
+  }
+
+  /* ----------------------------------------------------------------
+   * 2.  replace the old “step 2” of processTexText
+   * ---------------------------------------------------------------- */
+  processTexText(text) {
+    // A.  inline commands (handles nested braces)
+    text = this.parseInline(text);
+
+    // B.  single-level font-size commands
+    const nested = '([^{}]*(?:\\\\{[^{}]*\\\\}[^{}]*)*)';
+    [
+      'tiny','scriptsize','footnotesize','small','normalsize',
+      'large','Large','LARGE','huge','Huge'
+    ].forEach(cmd => {
+      // Handles \cmd{...}
+      const reBraced = new RegExp(`\\\\${cmd}\\s*\\{${nested}\\}`, 'g');
+      text = text.replace(reBraced, `<span class="tex-${cmd}">$1</span>`);
+      // Handles \cmd ... (to end of line)
+      const reSwitch = new RegExp(`(\\\\${cmd}\\s+)([^\\n]*)`, 'g');
+      text = text.replace(reSwitch, `<span class="tex-${cmd}">$2</span>`);
+    });
+
+    // C. Citations
+    text = text.replace(/\\citep\{([^}]+)\}/g, '(<span class="citation">$1</span>)');
+    text = text.replace(/\\citet\{([^}]+)\}/g, '<span class="citation">$1</span>');
+
+    // D. Line breaks
+    text = text.replace(/\\\\/g, '<br>');
+
+    // E.  escaped specials
+    const specials = { '#':'&#35;','$':'&#36;','%':'&#37;','&':'&',
+                       '_':'&#95;','{':'&#123;','}':'&#125;' };
+    return text.replace(/\\([#$%&_{}])/g, (_, c) => specials[c]);
+  }
 
     logError(method, error, context = '') {
         const errorInfo = {
