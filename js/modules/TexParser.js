@@ -8,6 +8,7 @@ export class TexParser {
     }
 
     parse(texContent) {
+        // Reset for each parse
         this.mathStore = {};
         this.mathCounter = 0;
 
@@ -47,7 +48,7 @@ export class TexParser {
         });
 
         // Protect other display math (align, equation)
-        const displayMathRegex = /\\begin\{(equation|align)\}\[\\s\\S\]*?\\end\{\\1\}/g;
+        const displayMathRegex = /\\begin\{(equation|align)\}\\s\\S]*?\\end\{\\1\}/g;
         text = text.replace(displayMathRegex, (match) => {
             const placeholder = `__DISPLAY_MATH_${this.mathCounter++}__`;
             this.mathStore[placeholder] = `<div class="article-equation">${match}</div>`;
@@ -76,6 +77,7 @@ export class TexParser {
         text = this.parseHeadings(text);
         text = this.parseTheorems(text);
         text = this.parseLists(text);
+        text = this.parseTables(text);
         return text;
     }
 
@@ -87,7 +89,7 @@ export class TexParser {
     }
 
     parseTheorems(text) {
-        const theoremRegex = /\\begin\{(theorem|definition|lemma|corollary|proof)\}\[\\s\\S\]*?\\end\{\\1\}/g;
+        const theoremRegex = /\begin{(theorem|definition|lemma|corollary|proof)}([\s\S]*?)\end{\1}/g;
         text = text.replace(theoremRegex, (match, env, content) => {
             const title = env.charAt(0).toUpperCase() + env.slice(1);
             const className = env === 'proof' ? 'article-proof' : 'article-theorem';
@@ -97,9 +99,9 @@ export class TexParser {
     }
 
     parseLists(text) {
-        text = text.replace(/\\begin\{enumerate\}\[\\s\\S\]*?\\end\{enumerate\}/g, 
+        text = text.replace(/\begin{enumerate}([\s\S]*?)\end{enumerate}/g,
             (match, listContent) => '<ol>' + this.processListItems(listContent) + '</ol>');
-        text = text.replace(/\\begin\{itemize\}\[\\s\\S\]*?\\end\{itemize\}/g, 
+        text = text.replace(/\begin{itemize}([\s\S]*?)\end{itemize}/g,
             (match, listContent) => '<ul>' + this.processListItems(listContent) + '</ul>');
         return text;
     }
@@ -107,6 +109,41 @@ export class TexParser {
     processListItems(listContent) {
         const items = listContent.split(/\\item/);
         return items.filter(item => item.trim()).map(item => `<li>${this.processTexText(item.trim())}</li>`).join('');
+    }
+
+    parseTables(text) {
+        const tableRegex = /\\begin\{table\}([\s\S]*?)\\end\{table\}/g;
+        text = text.replace(tableRegex, (match, content) => {
+            // Remove table-specific commands from the entire table block
+            content = content.replace(/\\toprule|\\midrule|\\bottomrule|\\caption\{[^}]*\}|\\label\{[^}]*\}/g, '');
+
+            const tabularRegex = /\\begin\{tabular\}\{[^}]+\}([\s\S]*?)\\end\{tabular\}/;
+            const tabularMatch = content.match(tabularRegex);
+            if (!tabularMatch) return ''; // No tabular environment found
+
+            const tableContent = tabularMatch[1];
+            return `<table class="article-table">${this.processTableRows(tableContent)}</table>`;
+        });
+        return text;
+    }
+
+    processTableRows(tableContent) {
+        const rows = tableContent.trim().split(/\\\\/);
+        let html = '';
+        let isFirstRow = true;
+
+        for (const row of rows) {
+            if (row.trim() === '') continue;
+            const cells = row.split('&');
+            const tag = isFirstRow ? 'th' : 'td';
+            html += '<tr>';
+            for (const cell of cells) {
+                html += `<${tag}>${this.processTexText(cell.trim())}</${tag}>`;
+            }
+            html += '</tr>';
+            isFirstRow = false;
+        }
+        return html;
     }
 
     parseParagraphs(text) {
@@ -126,6 +163,10 @@ export class TexParser {
     }
 
     processTexText(text) {
+        // Handle escaped characters like \$ so they don't get processed as math
+        text = text.replace(/\\\$/g, '$');
+        text = text.replace(/\\%/g, '%');
+        
         text = text.replace(/\\textbf\{([^}]+)\}/g, '<strong>$1</strong>');
         text = text.replace(/\\textit\{([^}]+)\}/g, '<em>$1</em>');
         text = text.replace(/\\emph\{([^}]+)\}/g, '<em>$1</em>');
