@@ -1,24 +1,32 @@
 /**
  * Window Manager - Handles window dragging, resizing, and state management
+ * Now with hardware-accelerated dragging for performance.
  */
 export class WindowManager {
-    constructor() {
+    constructor(debug = false) {
         this.windows = [];
         this.activeWindow = null;
         this.dragState = {
             isDragging: false,
-            currentX: 0,
-            currentY: 0,
+            // Store the original top/left values at the start of a drag
             initialX: 0,
             initialY: 0,
-            xOffset: 0,
-            yOffset: 0
+            // Store the mouse position at the start of a drag
+            startX: 0,
+            startY: 0,
         };
+        this.debug = debug;
+        if (this.debug) console.log('WindowManager: Initialized in debug mode.');
     }
 
     init() {
-        this.setupWindows();
-        this.setupEventListeners();
+        try {
+            this.setupWindows();
+            this.setupEventListeners();
+            if (this.debug) console.log('WindowManager: Initialization complete.');
+        } catch (error) {
+            console.error('WindowManager: Critical error during init.', error);
+        }
     }
 
     setupWindows() {
@@ -30,23 +38,16 @@ export class WindowManager {
 
     initializeWindow(windowElement) {
         const header = windowElement.querySelector('.window-header');
-        if (!header) return;
-
-        // Store initial position
-        const rect = windowElement.getBoundingClientRect();
-        windowElement.dataset.initialX = rect.left;
-        windowElement.dataset.initialY = rect.top;
-
-        // Setup dragging
+        if (!header) {
+            console.warn('WindowManager: Window found without a header. Skipping.', windowElement);
+            return;
+        }
         header.addEventListener('mousedown', (e) => this.startDrag(e, windowElement));
-        
-        // Setup window controls
         this.setupWindowControls(windowElement);
     }
 
     setupWindowControls(windowElement) {
         const controls = windowElement.querySelectorAll('.window-button');
-        
         controls.forEach(button => {
             button.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -56,6 +57,7 @@ export class WindowManager {
     }
 
     handleWindowControl(action, windowElement) {
+        if (this.debug) console.log(`WindowManager: Handling control action "${action}" for`, windowElement);
         switch (action) {
             case '×':
                 this.closeWindow(windowElement);
@@ -82,57 +84,36 @@ export class WindowManager {
 
     maximizeWindow(windowElement) {
         windowElement.classList.toggle('maximized');
-        
-        if (windowElement.classList.contains('maximized')) {
-            // Store current position and size
-            const rect = windowElement.getBoundingClientRect();
-            windowElement.dataset.restoreX = rect.left;
-            windowElement.dataset.restoreY = rect.top;
-            windowElement.dataset.restoreWidth = rect.width;
-            windowElement.dataset.restoreHeight = rect.height;
-        } else {
-            // Restore position and size
-            if (windowElement.dataset.restoreX) {
-                windowElement.style.left = windowElement.dataset.restoreX + 'px';
-                windowElement.style.top = windowElement.dataset.restoreY + 'px';
-                windowElement.style.width = windowElement.dataset.restoreWidth + 'px';
-                windowElement.style.height = windowElement.dataset.restoreHeight + 'px';
-            }
-        }
     }
 
     startDrag(e, windowElement) {
-        if (e.target.classList.contains('window-button')) return;
-        
-        this.activeWindow = windowElement;
-        this.dragState.isDragging = true;
-        
-        // Bring window to front
-        this.bringToFront(windowElement);
-        
-        // Store the current window position (accounting for any existing left/top styles)
-        const computedStyle = window.getComputedStyle(windowElement);
-        const currentLeft = parseInt(computedStyle.left) || 0;
-        const currentTop = parseInt(computedStyle.top) || 0;
-        
-        // Store initial mouse position and window position
-        this.dragState.initialX = e.clientX;
-        this.dragState.initialY = e.clientY;
-        this.dragState.xOffset = currentLeft;
-        this.dragState.yOffset = currentTop;
-        
-        // Add dragging class
-        windowElement.classList.add('dragging');
-        
-        // Prevent text selection
-        document.body.style.userSelect = 'none';
+        try {
+            if (e.target.classList.contains('window-button')) return;
+            
+            if (this.debug) console.log('WindowManager: Starting drag for', windowElement);
+            this.activeWindow = windowElement;
+            this.dragState.isDragging = true;
+            
+            this.bringToFront(windowElement);
+            
+            const computedStyle = window.getComputedStyle(windowElement);
+            this.dragState.initialX = parseInt(computedStyle.left) || 0;
+            this.dragState.initialY = parseInt(computedStyle.top) || 0;
+            this.dragState.startX = e.clientX;
+            this.dragState.startY = e.clientY;
+            
+            windowElement.classList.add('dragging');
+            document.body.style.userSelect = 'none';
+        } catch (error) {
+            console.error('WindowManager: Error during startDrag.', error);
+            this.endDrag();
+        }
     }
 
     setupEventListeners() {
         document.addEventListener('mousemove', (e) => this.handleDrag(e));
         document.addEventListener('mouseup', () => this.endDrag());
         
-        // Handle window focus
         document.addEventListener('mousedown', (e) => {
             const window = e.target.closest('.window');
             if (window) {
@@ -144,62 +125,58 @@ export class WindowManager {
     handleDrag(e) {
         if (!this.dragState.isDragging || !this.activeWindow) return;
         
-        e.preventDefault();
-        
-        // Calculate new position based on mouse movement from initial position
-        const deltaX = e.clientX - this.dragState.initialX;
-        const deltaY = e.clientY - this.dragState.initialY;
-        
-        // Calculate final position
-        this.dragState.currentX = this.dragState.xOffset + deltaX;
-        this.dragState.currentY = this.dragState.yOffset + deltaY;
-        
-        // Apply constraints (keep window on screen)
-        const windowRect = this.activeWindow.getBoundingClientRect();
-        const maxX = window.innerWidth - 100; // Keep at least 100px visible
-        const maxY = window.innerHeight - 50;  // Keep at least 50px visible
-        
-        this.dragState.currentX = Math.max(-windowRect.width + 100, 
-                                  Math.min(maxX, this.dragState.currentX));
-        this.dragState.currentY = Math.max(0, 
-                                  Math.min(maxY, this.dragState.currentY));
-        
-        // Apply position directly (no transform)
-        this.activeWindow.style.left = this.dragState.currentX + 'px';
-        this.activeWindow.style.top = this.dragState.currentY + 'px';
+        try {
+            e.preventDefault();
+            
+            const deltaX = e.clientX - this.dragState.startX;
+            const deltaY = e.clientY - this.dragState.startY;
+            
+            // Apply movement via transform for GPU acceleration
+            this.activeWindow.style.transform = `translate3d(${deltaX}px, ${deltaY}px, 0)`;
+
+        } catch (error) {
+            console.error('WindowManager: Error during handleDrag.', error);
+            this.endDrag();
+        }
     }
 
     endDrag() {
-        if (!this.dragState.isDragging) return;
+        if (!this.dragState.isDragging || !this.activeWindow) return;
+
+        if (this.debug) console.log('WindowManager: Ending drag for', this.activeWindow);
+        
+        const deltaX = event.clientX - this.dragState.startX;
+        const deltaY = event.clientY - this.dragState.startY;
+
+        // "Bake in" the new position by updating top/left
+        const newX = this.dragState.initialX + deltaX;
+        const newY = this.dragState.initialY + deltaY;
+        this.activeWindow.style.left = newX + 'px';
+        this.activeWindow.style.top = newY + 'px';
+
+        // Reset the transform so the next drag starts from a clean state
+        this.activeWindow.style.transform = '';
+
+        this.activeWindow.classList.remove('dragging');
+        document.body.style.userSelect = '';
         
         this.dragState.isDragging = false;
-        
-        if (this.activeWindow) {
-            // Remove dragging class
-            this.activeWindow.classList.remove('dragging');
-            
-            // No need to handle transforms since we're using direct positioning
-            // Position is already set in handleDrag()
-        }
-        
-        // Restore text selection
-        document.body.style.userSelect = '';
         this.activeWindow = null;
     }
 
     bringToFront(windowElement) {
-        // Reset all windows to base z-index
+        if (!windowElement) return;
+        if (this.debug) console.log('WindowManager: Bringing to front', windowElement);
+
         this.windows.forEach(win => {
             win.style.zIndex = '';
         });
         
-        // Bring selected window to front
         windowElement.style.zIndex = '20';
         this.activeWindow = windowElement;
     }
 
     updateTaskbar(windowElement, isVisible) {
-        // Find corresponding taskbar item and update its state
         const windowTitle = windowElement.querySelector('.window-title')?.textContent;
         if (!windowTitle) return;
         
@@ -213,66 +190,5 @@ export class WindowManager {
                 }
             }
         });
-    }
-
-    // Public methods for external control
-    showWindow(windowSelector) {
-        const window = document.querySelector(windowSelector);
-        if (window) {
-            window.style.display = 'block';
-            window.style.visibility = 'visible';
-            this.bringToFront(window);
-            this.updateTaskbar(window, true);
-        }
-    }
-
-    hideWindow(windowSelector) {
-        const window = document.querySelector(windowSelector);
-        if (window) {
-            this.minimizeWindow(window);
-        }
-    }
-
-    toggleWindow(windowSelector) {
-        const window = document.querySelector(windowSelector);
-        if (window) {
-            const isVisible = window.style.visibility !== 'hidden' && 
-                            window.style.display !== 'none';
-            
-            if (isVisible) {
-                this.hideWindow(windowSelector);
-            } else {
-                this.showWindow(windowSelector);
-            }
-        }
-    }
-
-    // Mobile-specific methods
-    setupMobileMode() {
-        if (window.innerWidth <= 768) {
-            // Disable dragging on mobile
-            this.windows.forEach(window => {
-                const header = window.querySelector('.window-header');
-                if (header) {
-                    header.style.cursor = 'default';
-                }
-            });
-        }
-    }
-
-    // Utility methods
-    getWindowByTitle(title) {
-        return this.windows.find(window => {
-            const windowTitle = window.querySelector('.window-title')?.textContent;
-            return windowTitle && windowTitle.toLowerCase().includes(title.toLowerCase());
-        });
-    }
-
-    getAllWindows() {
-        return this.windows;
-    }
-
-    getActiveWindow() {
-        return this.activeWindow;
     }
 }
