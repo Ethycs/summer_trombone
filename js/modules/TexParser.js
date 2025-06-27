@@ -404,37 +404,67 @@ export class TexParser {
   /* ----------------------------------------------------------------
    * 2.  replace the old “step 2” of processTexText
    * ---------------------------------------------------------------- */
-  processTexText(text) {
-    // A.  inline commands (handles nested braces)
-    text = this.parseInline(text);
+processTexText(text) {
+  /* =========================================================
+   * 1.  Expand inline commands such as \textbf{ … } (nested)
+   * ======================================================= */
+  text = this.parseInline(text);
 
-    // B.  single-level font-size commands
-    const nested = '([^{}]*(?:\\\\{[^{}]*\\\\}[^{}]*)*)';
-    [
-      'tiny','scriptsize','footnotesize','small','normalsize',
-      'large','Large','LARGE','huge','Huge'
-    ].forEach(cmd => {
-      // Handles \cmd{...}
-      const reBraced = new RegExp(`\\\\${cmd}\\s*\\{${nested}\\}`, 'g');
-      text = text.replace(reBraced, `<span class="tex-${cmd}">$1</span>`);
-      // Handles \cmd ... (to end of line)
-      const reSwitch = new RegExp(`(\\\\${cmd}\\s+)([^\\n]*)`, 'g');
-      text = text.replace(reSwitch, `<span class="tex-${cmd}">$2</span>`);
-    });
+  /* =========================================================
+   * 2.  Font-size commands
+   *      –  \small{…}  (braced)
+   *      –  \small …   (switch to end-of-line)
+   *    NESTED matches “one level of balanced braces”.
+   * ======================================================= */
+  const NESTED   = '([^{}]*(?:\\{[^{}]*\\}[^{}]*)*)';   //  ← only *one* back-slash per escape
+  const SIZES    = [
+    'tiny','scriptsize','footnotesize','small','normalsize',
+    'large','Large','LARGE','huge','Huge'
+  ];
 
-    // C. Citations
-    text = text.replace(/\\citep\{([^}]+)\}/g, '(<span class="citation">$1</span>)');
-    text = text.replace(/\\citet\{([^}]+)\}/g, '<span class="citation">$1</span>');
+  SIZES.forEach(cmd => {
+    /* \cmd{…} ------------------------------------------------ */
+    const reBraced  = new RegExp('\\\\' + cmd + '\\s*\\{' + NESTED + '\\}', 'g');
+    text = text.replace(reBraced, `<span class="tex-${cmd}">$1</span>`);
 
-    // D. Line breaks
-    text = text.replace(/\\\\/g, '<br>');
-    text = text.replace(/\\newblock/g, ' ');
+    /* \cmd … <EOL> ----------------------------------------- */
+    const reSwitch  = new RegExp('\\\\' + cmd + '\\s+([^\\n]*)', 'g');
+    text = text.replace(reSwitch, `<span class="tex-${cmd}">$1</span>`);
+  });
 
-    // E.  escaped specials
-    const specials = { '#':'&#35;','$':'&#36;','%':'&#37;','&':'&',
-                       '_':'&#95;','{':'&#123;','}':'&#125;' };
-    return text.replace(/\\([#$%&_{}])/g, (_, c) => specials[c]);
-  }
+  /* =========================================================
+   * 3.  Citations  (\citep, \citet)
+   * ======================================================= */
+  const citeToLinks = (keys, bare = false) =>
+    keys.split(',').map(k => k.trim())
+        .map(k => `<a href="#ref-${k}" class="citation">${bare ? k : `[${k}]`}</a>`)
+        .join(', ');
+
+  // \citep{key1,key2}  →  ([key1], [key2])
+  text = text.replace(/\\citep\{([^}]+)\}/g,
+                      (_, keys) => `(${citeToLinks(keys)})`);
+
+  // \citet{key}        →  key
+  text = text.replace(/\\citet\{([^}]+)\}/g,
+                      (_, keys) => citeToLinks(keys, /* bare = */ true));
+
+  /* =========================================================
+   * 4.  Line-break helpers
+   * ======================================================= */
+  text = text.replace(/\\\\/g, '<br>');
+  text = text.replace(/\\newblock/g, ' ');
+
+  /* =========================================================
+   * 5.  Escaped specials – leave *last* so earlier markup
+   *    stays detectable.
+   * ======================================================= */
+  const specials = {
+    '#':'&#35;', '$':'&#36;', '%':'&#37;', '&':'&amp;',
+    '_':'&#95;', '{':'&#123;', '}':'&#125;'
+  };
+  return text.replace(/\\([#$%&_{}])/g, (_, c) => specials[c]);
+}
+
 
     logError(method, error, context = '') {
         const errorInfo = {

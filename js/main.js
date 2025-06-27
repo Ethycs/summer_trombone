@@ -43,7 +43,7 @@ class TerminalApp {
 
     async initializeModules() {
         // Initialize Window Manager first, in debug mode
-        this.modules.windowManager = new WindowManager(true);
+        this.modules.windowManager = new WindowManager(false);
         this.modules.windowManager.init();
 
         // Initialize Terminal Effects
