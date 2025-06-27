@@ -24,20 +24,9 @@ export class TexArticleSystem {
     }
 
     async loadArticleList() {
-        try {
-            const response = await fetch('./article/');
-            if (response.ok) {
-                const html = await response.text();
-                this.parseDirectoryListing(html);
-            } else {
-                this.articles = ['premium_for_that.tex'];
-                this.renderArticleList();
-            }
-        } catch (error) {
-            console.log('Directory listing not available, using known articles');
-            this.articles = ['premium_for_that.tex'];
-            this.renderArticleList();
-        }
+        const modules = import.meta.glob('/article/*.tex');
+        this.articles = Object.keys(modules).map(path => path.split('/').pop());
+        this.renderArticleList();
     }
 
     parseDirectoryListing(html) {

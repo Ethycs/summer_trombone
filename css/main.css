@@ -11,6 +11,7 @@
 @import url('./components/windows.css');
 @import url('./components/terminal.css');
 @import url('./components/articles.css');
+@import url('./components/markdown.css');
 @import url('./components/taskbar.css');
 
 /* 3. Responsive styles (last to override) */

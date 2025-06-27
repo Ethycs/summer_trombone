@@ -228,12 +228,37 @@
         <div class="taskbar-item">Editor</div>
         <div class="taskbar-item">Logs</div>
         <div class="taskbar-item">Articles</div>
+        <div class="taskbar-item">Blog</div>
         <div class="taskbar-clock" id="clock">14:33:07 UTC</div>
     </div>
 
     <!-- KaTeX JavaScript - Remove integrity checks to avoid CSP issues -->
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
+
+    <!-- Markdown Blog Window -->
+    <div class="window markdown-blog-window" style="display: none;">
+        <div class="window-header">
+            <span class="window-title">Markdown Blog</span>
+            <div class="window-controls">
+                <div class="window-button">_</div>
+                <div class="window-button">□</div>
+                <div class="window-button">×</div>
+            </div>
+        </div>
+        <div class="window-content" style="padding: 0;">
+            <div class="article-browser">
+                <div class="article-list">
+                    <div class="loading-indicator">Loading articles...</div>
+                </div>
+            </div>
+            <div class="article-content">
+                <div style="text-align: center; color: var(--terminal-dim); padding: 40px;">
+                    <p>Select an article from the list above to view its content.</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Main Application Script (ES6 Modules) -->
     <script type="module" src="./js/main.js"></script>

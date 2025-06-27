@@ -4,6 +4,7 @@
  */
 
 import { TexArticleSystem } from './modules/TexArticleSystem.js';
+import { MarkdownArticleSystem } from './modules/MarkdownArticleSystem.js';
 import { WindowManager } from './modules/WindowManager.js';
 import { TerminalEffects } from './modules/TerminalEffects.js';
 import { MobileHandler } from './modules/MobileHandler.js';
@@ -63,6 +64,17 @@ class TerminalApp {
                 articleWindow.texSystem = texSystem;
             } catch (error) {
                 console.error('Failed to initialize TexArticleSystem for a window:', error);
+            }
+        });
+
+        // Initialize Markdown Article System for all blog windows
+        document.querySelectorAll('.markdown-blog-window').forEach(async (blogWindow) => {
+            try {
+                const markdownSystem = new MarkdownArticleSystem(blogWindow);
+                await markdownSystem.init();
+                blogWindow.markdownSystem = markdownSystem;
+            } catch (error) {
+                console.error('Failed to initialize MarkdownArticleSystem for a window:', error);
             }
         });
 
