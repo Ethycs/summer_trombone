@@ -121,6 +121,14 @@
     z-index: 8;
 }
 
+.markdown-blog-window {
+    top: 100px;
+    left: 100px;
+    width: 700px;
+    height: 600px;
+    z-index: 9;
+}
+
 /* Window States */
 .window.maximized {
     top: 0 !important;

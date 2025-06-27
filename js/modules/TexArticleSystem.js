@@ -24,8 +24,16 @@ export class TexArticleSystem {
     }
 
     async loadArticleList() {
-        const modules = import.meta.glob('/article/*.tex');
-        this.articles = Object.keys(modules).map(path => path.split('/').pop());
+        console.log('[TexArticleSystem] Loading article list...');
+        const modules = import.meta.glob('../../article/*.tex', { query: '?raw', import: 'default' });
+        console.log('[TexArticleSystem] Glob modules:', modules);
+        this.articles = await Promise.all(
+            Object.entries(modules).map(async ([path, importer]) => {
+                const filename = path.split('/').pop();
+                console.log(`[TexArticleSystem] Found article: ${filename}`);
+                return { filename, importer };
+            })
+        );
         this.renderArticleList();
     }
 
@@ -46,8 +54,8 @@ export class TexArticleSystem {
             return;
         }
 
-        this.articleListElement.innerHTML = this.articles.map(article =>
-            `<div class="article-item" data-article="${article}">${article.replace('.tex', '')}</div>`
+        this.articleListElement.innerHTML = this.articles.map(({ filename }) =>
+            `<div class="article-item" data-article="${filename}">${filename.replace('.tex', '')}</div>`
         ).join('');
     }
 
@@ -90,19 +98,25 @@ export class TexArticleSystem {
     async loadArticle(filename) {
         try {
             this.articleContentElement.innerHTML = '<div class="loading-indicator">Loading article...</div>';
-            
-            const response = await fetch(`./article/${filename}`);
-            if (!response.ok) {
-                throw new Error(`Failed to load ${filename}`);
+            console.log(`[TexArticleSystem] Loading article: ${filename}`);
+
+            const article = this.articles.find(a => a.filename === filename);
+            if (!article) {
+                throw new Error(`Article "${filename}" not found.`);
             }
-            
-            const texContent = await response.text();
+
+            console.log('[TexArticleSystem] Importing content...');
+            const texContent = await article.importer();
+            console.log('[TexArticleSystem] Content imported, parsing...');
             const htmlContent = await this.parseTexInWorker(texContent);
             this.articleContentElement.innerHTML = htmlContent;
             
+            console.log('[TexArticleSystem] Rendering math...');
             this.renderMath();
+            console.log('[TexArticleSystem] Article loaded successfully.');
             
         } catch (error) {
+            console.error(`[TexArticleSystem] Error loading article: ${error.message}`, error);
             this.articleContentElement.innerHTML = 
                 `<div class="error-message">Error loading article: ${error.message}</div>`;
         }

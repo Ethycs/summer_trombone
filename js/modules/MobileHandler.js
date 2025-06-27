@@ -89,7 +89,8 @@ export class MobileHandler {
             'SysMonitor': '.system-window',
             'Editor': '.code-window',
             'Logs': '.log-window',
-            'Articles': '.articles-window'
+            'Articles': '.articles-window',
+            'Blog': '.markdown-blog-window'
         };
 
         this.taskbarItems.forEach(item => {

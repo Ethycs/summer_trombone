@@ -16,9 +16,14 @@ export class MarkdownArticleSystem {
 
         this.articles = [];
         this.currentArticle = null;
-        this.worker = new Worker(new URL('./MarkdownWorker.js', import.meta.url), {
-            type: 'module'
-        });
+        console.log('[MarkdownArticleSystem] Creating worker...');
+        try {
+            this.worker = new Worker(new URL('./md.worker.js', import.meta.url), { type: 'module' });
+            console.log('[MarkdownArticleSystem] Full-featured worker created successfully');
+        } catch (error) {
+            console.error('[MarkdownArticleSystem] Failed to create worker:', error);
+            throw error;
+        }
     }
 
     async init() {
@@ -27,8 +32,16 @@ export class MarkdownArticleSystem {
     }
 
     async loadArticleList() {
-        const modules = import.meta.glob('/articles-md/*.md');
-        this.articles = Object.keys(modules).map(path => path.split('/').pop());
+        console.log('[MarkdownArticleSystem] Loading article list...');
+        const modules = import.meta.glob('../../articles-md/*.md', { as: 'raw' });
+        console.log('[MarkdownArticleSystem] Glob modules:', modules);
+        this.articles = await Promise.all(
+            Object.entries(modules).map(async ([path, importer]) => {
+                const filename = path.split('/').pop();
+                console.log(`[MarkdownArticleSystem] Found article: ${filename}`);
+                return { filename, importer };
+            })
+        );
         this.renderArticleList();
     }
 
@@ -38,8 +51,8 @@ export class MarkdownArticleSystem {
             return;
         }
 
-        this.articleListElement.innerHTML = this.articles.map(article =>
-            `<div class="article-item" data-article="${article}">${article.replace('.md', '')}</div>`
+        this.articleListElement.innerHTML = this.articles.map(({ filename }) =>
+            `<div class="article-item" data-article="${filename}">${filename.replace('.md', '')}</div>`
         ).join('');
     }
 
@@ -55,33 +68,51 @@ export class MarkdownArticleSystem {
         });
 
         this.worker.onmessage = ({ data }) => {
+            console.log('[MarkdownArticleSystem] Message received from worker:', data);
             const { id, html, manifest } = data;
             const handler = this.messageHandlers.get(id);
             if (handler) {
                 handler({ html, manifest });
                 this.messageHandlers.delete(id);
+            } else {
+                console.error(`[MarkdownArticleSystem] No handler found for message ID: ${id}`);
             }
         };
+        
+        this.worker.onerror = (error) => {
+            console.error('[MarkdownArticleSystem] Worker error:', error);
+        };
+        
+        this.worker.onmessageerror = (error) => {
+            console.error('[MarkdownArticleSystem] Worker message error:', error);
+        };
+        
         this.messageHandlers = new Map();
     }
 
     async loadArticle(filename) {
         try {
             this.articleContentElement.innerHTML = '<div class="loading-indicator">Loading article...</div>';
+            console.log(`[MarkdownArticleSystem] Loading article: ${filename}`);
             
-            const response = await fetch(`./articles-md/${filename}`);
-            if (!response.ok) {
-                throw new Error(`Failed to load ${filename}`);
+            const article = this.articles.find(a => a.filename === filename);
+            if (!article) {
+                throw new Error(`Article "${filename}" not found.`);
             }
-            
-            const markdownContent = await response.text();
+
+            console.log('[MarkdownArticleSystem] Importing content...');
+            const markdownContent = await article.importer();
+            console.log('[MarkdownArticleSystem] Content imported, rendering...');
             const { html, manifest } = await this.renderMarkdown(markdownContent);
             
             this.articleContentElement.innerHTML = html;
             
+            console.log('[MarkdownArticleSystem] Post-processing...');
             this.postProcess(manifest);
+            console.log('[MarkdownArticleSystem] Article loaded successfully.');
 
         } catch (error) {
+            console.error(`[MarkdownArticleSystem] Error loading article: ${error.message}`, error);
             this.articleContentElement.innerHTML = 
                 `<div class="error-message">Error loading article: ${error.message}</div>`;
         }
@@ -96,15 +127,16 @@ export class MarkdownArticleSystem {
     }
 
     postProcess(manifest) {
-        if (manifest.includes('highlight')) {
-            import('highlight.js').then(({ default: hljs }) => {
-                this.articleContentElement.querySelectorAll('pre code.hljs').forEach(el => hljs.highlightElement(el));
+        // Find all mermaid code blocks and render them
+        this.articleContentElement.querySelectorAll('code.language-mermaid').forEach((el) => {
+            import('mermaid').then(({ default: mermaid }) => {
+                const code = el.textContent;
+                const container = document.createElement('div');
+                container.className = 'mermaid';
+                container.textContent = code;
+                el.parentNode.replaceWith(container);
+                mermaid.run({ nodes: [container] });
             });
-        }
-        if (manifest.includes('mermaid')) {
-            import('mermaid').then(({ default: mermaid }) => mermaid.run({
-                nodes: this.articleContentElement.querySelectorAll('.language-mermaid')
-            }));
-        }
+        });
     }
 }
