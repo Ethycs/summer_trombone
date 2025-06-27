@@ -14,6 +14,10 @@ export class WindowManager {
             // Store the mouse position at the start of a drag
             startX: 0,
             startY: 0,
+            // For requestAnimationFrame
+            animationFrameId: null,
+            lastX: 0,
+            lastY: 0,
         };
         this.debug = debug;
         if (this.debug) console.log('WindowManager: Initialized in debug mode.');
@@ -86,6 +90,29 @@ export class WindowManager {
         windowElement.classList.toggle('maximized');
     }
 
+    showWindow(windowElement) {
+        windowElement.style.display = 'block';
+        windowElement.style.visibility = 'visible';
+        this.bringToFront(windowElement);
+        this.updateTaskbar(windowElement, true);
+    }
+
+    toggleWindow(windowSelector) {
+        const windowElement = document.querySelector(windowSelector);
+        if (!windowElement) {
+            if (this.debug) console.warn(`WindowManager: Window with selector "${windowSelector}" not found.`);
+            return;
+        }
+
+        const isVisible = windowElement.style.display !== 'none' && windowElement.style.visibility !== 'hidden';
+
+        if (isVisible) {
+            this.closeWindow(windowElement);
+        } else {
+            this.showWindow(windowElement);
+        }
+    }
+
     startDrag(e, windowElement) {
         try {
             if (e.target.classList.contains('window-button')) return;
@@ -123,30 +150,41 @@ export class WindowManager {
     }
 
     handleDrag(e) {
-        if (!this.dragState.isDragging || !this.activeWindow) return;
-        
-        try {
-            e.preventDefault();
-            
-            const deltaX = e.clientX - this.dragState.startX;
-            const deltaY = e.clientY - this.dragState.startY;
-            
-            // Apply movement via transform for GPU acceleration
-            this.activeWindow.style.transform = `translate3d(${deltaX}px, ${deltaY}px, 0)`;
+        if (!this.dragState.isDragging) return;
 
-        } catch (error) {
-            console.error('WindowManager: Error during handleDrag.', error);
-            this.endDrag();
+        this.dragState.lastX = e.clientX;
+        this.dragState.lastY = e.clientY;
+
+        if (!this.dragState.animationFrameId) {
+            this.dragState.animationFrameId = requestAnimationFrame(() => this.updateDragPosition());
         }
+    }
+
+    updateDragPosition() {
+        if (!this.dragState.isDragging || !this.activeWindow) return;
+
+        const deltaX = this.dragState.lastX - this.dragState.startX;
+        const deltaY = this.dragState.lastY - this.dragState.startY;
+
+        this.activeWindow.style.transform = `translate3d(${deltaX}px, ${deltaY}px, 0)`;
+        
+        // Allow the next frame to be requested
+        this.dragState.animationFrameId = null;
     }
 
     endDrag() {
         if (!this.dragState.isDragging || !this.activeWindow) return;
 
+        // Cancel any pending animation frame
+        if (this.dragState.animationFrameId) {
+            cancelAnimationFrame(this.dragState.animationFrameId);
+            this.dragState.animationFrameId = null;
+        }
+
         if (this.debug) console.log('WindowManager: Ending drag for', this.activeWindow);
         
-        const deltaX = event.clientX - this.dragState.startX;
-        const deltaY = event.clientY - this.dragState.startY;
+        const deltaX = this.dragState.lastX - this.dragState.startX;
+        const deltaY = this.dragState.lastY - this.dragState.startY;
 
         // "Bake in" the new position by updating top/left
         const newX = this.dragState.initialX + deltaX;

@@ -330,10 +330,11 @@ class TexParser {
                     
                     for (let i = 1; i < items.length; i++) {
                         const item = items[i];
-                        const labelMatch = item.match(/^\[([^\]]+)\]\{([^}]+)\}/);
+                        const labelMatch = item.match(/^(?:\[([^\]]*)\])?\{([^}]+)\}/);
                         if (labelMatch) {
+                            const refKey = labelMatch[2];
                             const contentText = item.substring(labelMatch[0].length).trim();
-                            html += `<li>${this.processTexText(contentText)}</li>`;
+                            html += `<li id="ref-${refKey}">${this.processTexText(contentText)}</li>`;
                         }
                     }
                     

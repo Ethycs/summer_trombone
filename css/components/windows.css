@@ -34,6 +34,9 @@
     height: 22px;
     font-family: var(--font-stack);
     font-weight: bold;
+    position: sticky;
+    top: 0;
+    z-index: 1;
 }
 
 .window-title {
@@ -71,7 +74,7 @@
 /* Window Content */
 .window-content {
     padding: var(--spacing-sm);
-    height: calc(100% - 20px);
+    height: calc(100% - 22px);
     overflow-y: auto;
     background: var(--terminal-bg);
 }

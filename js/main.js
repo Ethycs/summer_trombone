@@ -54,9 +54,17 @@ class TerminalApp {
         this.modules.mobileHandler = new MobileHandler(this.modules.windowManager);
         this.modules.mobileHandler.init();
 
-        // Initialize TeX Article System
-        this.modules.texSystem = new TexArticleSystem();
-        await this.modules.texSystem.init();
+        // Initialize TeX Article System for all article windows
+        document.querySelectorAll('.articles-window').forEach(async (articleWindow) => {
+            try {
+                const texSystem = new TexArticleSystem(articleWindow);
+                await texSystem.init();
+                // Store instances if needed, e.g., on the element itself
+                articleWindow.texSystem = texSystem;
+            } catch (error) {
+                console.error('Failed to initialize TexArticleSystem for a window:', error);
+            }
+        });
 
         console.log('All modules initialized');
     }

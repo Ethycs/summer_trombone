@@ -2,11 +2,20 @@
  * TeX Article System - Handles loading and rendering of LaTeX articles
  */
 export class TexArticleSystem {
-    constructor() {
+    constructor(containerElement) {
+        if (!containerElement) {
+            throw new Error('TexArticleSystem requires a container element');
+        }
+        this.container = containerElement;
+        this.articleListElement = this.container.querySelector('.article-list');
+        this.articleContentElement = this.container.querySelector('.article-content');
+        
+        if (!this.articleListElement || !this.articleContentElement) {
+            throw new Error('Container element must have .article-list and .article-content children.');
+        }
+
         this.articles = [];
         this.currentArticle = null;
-        this.articleListElement = document.getElementById('articleList');
-        this.articleContentElement = document.getElementById('articleContent');
     }
 
     async init() {
@@ -48,7 +57,7 @@ export class TexArticleSystem {
             return;
         }
 
-        this.articleListElement.innerHTML = this.articles.map(article => 
+        this.articleListElement.innerHTML = this.articles.map(article =>
             `<div class="article-item" data-article="${article}">${article.replace('.tex', '')}</div>`
         ).join('');
     }
@@ -58,9 +67,21 @@ export class TexArticleSystem {
             if (e.target.classList.contains('article-item')) {
                 this.loadArticle(e.target.dataset.article);
                 
-                document.querySelectorAll('.article-item').forEach(item => 
+                this.articleListElement.querySelectorAll('.article-item').forEach(item =>
                     item.classList.remove('active'));
                 e.target.classList.add('active');
+            }
+        });
+
+        this.articleContentElement.addEventListener('click', (e) => {
+            const target = e.target.closest('.citation');
+            if (target) {
+                e.preventDefault();
+                const refId = target.getAttribute('href').substring(1);
+                const refElement = this.articleContentElement.querySelector(`#${refId}`);
+                if (refElement) {
+                    refElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
             }
         });
     }
