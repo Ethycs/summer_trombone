@@ -24,13 +24,10 @@ export class TexArticleSystem {
     }
 
     async loadArticleList() {
-        console.log('[TexArticleSystem] Loading article list...');
         const modules = import.meta.glob('../../article/*.tex', { query: '?raw', import: 'default' });
-        console.log('[TexArticleSystem] Glob modules:', modules);
         this.articles = await Promise.all(
             Object.entries(modules).map(async ([path, importer]) => {
                 const filename = path.split('/').pop();
-                console.log(`[TexArticleSystem] Found article: ${filename}`);
                 return { filename, importer };
             })
         );
@@ -98,25 +95,19 @@ export class TexArticleSystem {
     async loadArticle(filename) {
         try {
             this.articleContentElement.innerHTML = '<div class="loading-indicator">Loading article...</div>';
-            console.log(`[TexArticleSystem] Loading article: ${filename}`);
 
             const article = this.articles.find(a => a.filename === filename);
             if (!article) {
                 throw new Error(`Article "${filename}" not found.`);
             }
 
-            console.log('[TexArticleSystem] Importing content...');
             const texContent = await article.importer();
-            console.log('[TexArticleSystem] Content imported, parsing...');
             const htmlContent = await this.parseTexInWorker(texContent);
             this.articleContentElement.innerHTML = htmlContent;
             
-            console.log('[TexArticleSystem] Rendering math...');
             this.renderMath();
-            console.log('[TexArticleSystem] Article loaded successfully.');
             
         } catch (error) {
-            console.error(`[TexArticleSystem] Error loading article: ${error.message}`, error);
             this.articleContentElement.innerHTML = 
                 `<div class="error-message">Error loading article: ${error.message}</div>`;
         }

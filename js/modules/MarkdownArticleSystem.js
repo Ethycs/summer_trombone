@@ -16,14 +16,7 @@ export class MarkdownArticleSystem {
 
         this.articles = [];
         this.currentArticle = null;
-        console.log('[MarkdownArticleSystem] Creating worker...');
-        try {
-            this.worker = new Worker(new URL('./md.worker.js', import.meta.url), { type: 'module' });
-            console.log('[MarkdownArticleSystem] Full-featured worker created successfully');
-        } catch (error) {
-            console.error('[MarkdownArticleSystem] Failed to create worker:', error);
-            throw error;
-        }
+        this.worker = new Worker(new URL('./md.worker.js', import.meta.url), { type: 'module' });
     }
 
     async init() {
@@ -32,13 +25,10 @@ export class MarkdownArticleSystem {
     }
 
     async loadArticleList() {
-        console.log('[MarkdownArticleSystem] Loading article list...');
         const modules = import.meta.glob('../../articles-md/*.md', { as: 'raw' });
-        console.log('[MarkdownArticleSystem] Glob modules:', modules);
         this.articles = await Promise.all(
             Object.entries(modules).map(async ([path, importer]) => {
                 const filename = path.split('/').pop();
-                console.log(`[MarkdownArticleSystem] Found article: ${filename}`);
                 return { filename, importer };
             })
         );
@@ -68,51 +58,33 @@ export class MarkdownArticleSystem {
         });
 
         this.worker.onmessage = ({ data }) => {
-            console.log('[MarkdownArticleSystem] Message received from worker:', data);
             const { id, html, manifest } = data;
             const handler = this.messageHandlers.get(id);
             if (handler) {
                 handler({ html, manifest });
                 this.messageHandlers.delete(id);
-            } else {
-                console.error(`[MarkdownArticleSystem] No handler found for message ID: ${id}`);
             }
         };
-        
-        this.worker.onerror = (error) => {
-            console.error('[MarkdownArticleSystem] Worker error:', error);
-        };
-        
-        this.worker.onmessageerror = (error) => {
-            console.error('[MarkdownArticleSystem] Worker message error:', error);
-        };
-        
         this.messageHandlers = new Map();
     }
 
     async loadArticle(filename) {
         try {
             this.articleContentElement.innerHTML = '<div class="loading-indicator">Loading article...</div>';
-            console.log(`[MarkdownArticleSystem] Loading article: ${filename}`);
             
             const article = this.articles.find(a => a.filename === filename);
             if (!article) {
                 throw new Error(`Article "${filename}" not found.`);
             }
 
-            console.log('[MarkdownArticleSystem] Importing content...');
             const markdownContent = await article.importer();
-            console.log('[MarkdownArticleSystem] Content imported, rendering...');
             const { html, manifest } = await this.renderMarkdown(markdownContent);
             
             this.articleContentElement.innerHTML = html;
             
-            console.log('[MarkdownArticleSystem] Post-processing...');
             this.postProcess(manifest);
-            console.log('[MarkdownArticleSystem] Article loaded successfully.');
 
         } catch (error) {
-            console.error(`[MarkdownArticleSystem] Error loading article: ${error.message}`, error);
             this.articleContentElement.innerHTML = 
                 `<div class="error-message">Error loading article: ${error.message}</div>`;
         }
