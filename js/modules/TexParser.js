@@ -9,7 +9,7 @@ const INLINE_CMD = {
   texttt : ['<code>',   '</code>']
 };
 
-export class TexParser {
+class TexParser {
     constructor() {
         this.mathStore = {};
         this.mathCounter = 0;
@@ -23,8 +23,41 @@ export class TexParser {
         this.errors = [];
 
         try {
+            const titleMatch = texContent.match(/\\title\{([^}]+)\}/);
+            const authorMatch = texContent.match(/\\author\{([^}]+)\}/);
+            const abstractMatch = texContent.match(/\\begin\{abstract\}([\s\S]*?)\\end\{abstract\}/);
+            const documentMatch = texContent.match(/\\begin\{document\}([\s\S]*?)\\end\{document\}/);
+            
+            if (!documentMatch) {
+                return '<div class="error-message">Invalid TeX document structure</div>';
+            }
+
             let html = '';
-            const sections = texContent.split(/(?=\\section)/);
+            if (titleMatch) {
+                const fullTitle = titleMatch[1];
+                const titleParts = fullTitle.split('\\\\');
+                html += `<div class="article-title">${this.processTexText(titleParts[0])}</div>`;
+                if (titleParts[1]) {
+                    html += `<div class="article-subtitle">${this.processTexText(titleParts[1])}</div>`;
+                }
+            }
+            
+            if (authorMatch) {
+                html += `<div class="article-author">${this.processTexText(authorMatch[1])}</div>`;
+            }
+            
+            if (abstractMatch) {
+                html += `<div class="article-abstract">
+                    <strong>Abstract:</strong><br>
+                    ${this.processTexText(abstractMatch[1])}
+                </div>`;
+            }
+            
+            let content = documentMatch[1];
+            content = content.replace(/\\maketitle\s*/g, '');
+            content = content.replace(/\\begin\{abstract\}[\s\S]*?\\end\{abstract\}/g, '');
+
+            const sections = content.split(/(?=\\section)/);
 
             for (let section of sections) {
                 if (section.trim()) {
@@ -476,4 +509,11 @@ processTexText(text) {
         this.errors.push(errorInfo);
         console.error(`[TexParser.${method}] Error:`, errorInfo);
     }
+}
+
+// Export for module environments, or attach to self for worker environments
+if (typeof exports !== 'undefined') {
+    exports.TexParser = TexParser;
+} else {
+    self.TexParser = TexParser;
 }

@@ -1,5 +1,3 @@
-import { TexParser } from './TexParser.js';
-
 /**
  * TeX Article System - Handles loading and rendering of LaTeX articles
  */
@@ -9,7 +7,6 @@ export class TexArticleSystem {
         this.currentArticle = null;
         this.articleListElement = document.getElementById('articleList');
         this.articleContentElement = document.getElementById('articleContent');
-        this.parser = new TexParser();
     }
 
     async init() {
@@ -78,7 +75,7 @@ export class TexArticleSystem {
             }
             
             const texContent = await response.text();
-            const htmlContent = this.parseTexToHtml(texContent);
+            const htmlContent = await this.parseTexInWorker(texContent);
             this.articleContentElement.innerHTML = htmlContent;
             
             this.renderMath();
@@ -89,44 +86,22 @@ export class TexArticleSystem {
         }
     }
 
-    parseTexToHtml(texContent) {
-        const titleMatch = texContent.match(/\\title\{([^}]+)\}/);
-        const authorMatch = texContent.match(/\\author\{([^}]+)\}/);
-        const abstractMatch = texContent.match(/\\begin\{abstract\}([\s\S]*?)\\end\{abstract\}/);
-        const documentMatch = texContent.match(/\\begin\{document\}([\s\S]*?)\\end\{document\}/);
-        
-        if (!documentMatch) {
-            return '<div class="error-message">Invalid TeX document structure</div>';
-        }
+    parseTexInWorker(texContent) {
+        return new Promise((resolve, reject) => {
+            const worker = new Worker('./js/modules/TexParser.worker.js');
 
-        let html = '';
-        if (titleMatch) {
-            const fullTitle = titleMatch[1];
-            const titleParts = fullTitle.split('\\\\');
-            html += `<div class="article-title">${this.parser.processTexText(titleParts[0])}</div>`;
-            if (titleParts[1]) {
-                html += `<div class="article-subtitle">${this.parser.processTexText(titleParts[1])}</div>`;
-            }
-        }
-        
-        if (authorMatch) {
-            html += `<div class="article-author">${this.parser.processTexText(authorMatch[1])}</div>`;
-        }
-        
-        if (abstractMatch) {
-            html += `<div class="article-abstract">
-                <strong>Abstract:</strong><br>
-                ${this.parser.processTexText(abstractMatch[1])}
-            </div>`;
-        }
-        
-        let content = documentMatch[1];
-        content = content.replace(/\\maketitle\s*/g, '');
-        content = content.replace(/\\begin\{abstract\}[\s\S]*?\\end\{abstract\}/g, '');
+            worker.onmessage = (e) => {
+                resolve(e.data);
+                worker.terminate();
+            };
 
-        html += this.parser.parse(content);
-        
-        return html;
+            worker.onerror = (e) => {
+                reject(new Error(`Worker error: ${e.message}`));
+                worker.terminate();
+            };
+
+            worker.postMessage(texContent);
+        });
     }
 
     async renderMath() {
