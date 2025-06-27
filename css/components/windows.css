@@ -74,6 +74,7 @@
 /* Window Content */
 .window-content {
     padding: var(--spacing-sm);
+    padding-top: 22px; /* Space for sticky header */
     height: calc(100% - 22px);
     overflow-y: auto;
     background: var(--terminal-bg);

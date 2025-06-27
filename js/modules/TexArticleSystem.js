@@ -80,7 +80,19 @@ export class TexArticleSystem {
                 const refId = target.getAttribute('href').substring(1);
                 const refElement = this.articleContentElement.querySelector(`#${refId}`);
                 if (refElement) {
-                    refElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    const scrollContainer = this.container.querySelector('.window-content');
+                    const headerHeight = this.container.querySelector('.window-header')?.offsetHeight || 0;
+
+                    const containerRect = scrollContainer.getBoundingClientRect();
+                    const targetRect = refElement.getBoundingClientRect();
+
+                    const offset = targetRect.top - containerRect.top;
+                    const scrollTop = scrollContainer.scrollTop + offset - headerHeight;
+
+                    scrollContainer.scrollTo({
+                        top: scrollTop,
+                        behavior: 'smooth'
+                    });
                 }
             }
         });
