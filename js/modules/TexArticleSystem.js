@@ -56,7 +56,11 @@ export class TexArticleSystem {
     }
 
     refreshArticleList() {
-        this.articles = this.fs.list('/papers/').map(entry => {
+        const papers = this.fs.list('/papers/');
+        console.log('[TexArticleSystem] Refreshing article list, found:', papers.length, 'files in /papers/');
+        console.log('[TexArticleSystem] Papers:', papers);
+        
+        this.articles = papers.map(entry => {
             const filename = entry.path.split('/').pop();
             return {
                 path: entry.path,
@@ -81,7 +85,8 @@ export class TexArticleSystem {
     renderArticleList() {
         const activeArticle = this.currentArticle;
 
-        const items = this.articleListElement.querySelectorAll('.article-item');
+        // Remove both article items and loading indicator
+        const items = this.articleListElement.querySelectorAll('.article-item, .loading-indicator');
         items.forEach(item => item.remove());
 
         if (this.articles.length === 0) {

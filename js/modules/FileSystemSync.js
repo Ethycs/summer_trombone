@@ -60,12 +60,20 @@ class FileSystemSync {
             drafts: import.meta.glob('/drafts/**/*.{md,tex}', { eager: true, query: '?raw', import: 'default' })
         };
 
+        console.log('[FileSystemSync] Scanning with Vite glob patterns');
+        console.log('[FileSystemSync] Posts found:', Object.keys(files.posts));
+        console.log('[FileSystemSync] Papers found:', Object.keys(files.papers));
+        console.log('[FileSystemSync] Drafts found:', Object.keys(files.drafts));
+
         this.filesystem.clear();
         Object.values(files).forEach(items => {
             Object.entries(items).forEach(([path, content]) => {
                 this.addFile(path, content);
             });
         });
+        
+        console.log('[FileSystemSync] Total files loaded:', this.filesystem.size);
+        console.log('[FileSystemSync] Files in filesystem:', Array.from(this.filesystem.keys()));
     }
 
     async scanWithManifest() {

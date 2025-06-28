@@ -57,7 +57,11 @@ export class MarkdownArticleSystem {
     }
 
     refreshArticleList() {
-        this.articles = this.fs.list('/posts/').map(entry => {
+        const posts = this.fs.list('/posts/');
+        console.log('[MarkdownArticleSystem] Refreshing article list, found:', posts.length, 'files in /posts/');
+        console.log('[MarkdownArticleSystem] Posts:', posts);
+        
+        this.articles = posts.map(entry => {
             const filename = entry.path.split('/').pop();
             return {
                 path: entry.path,
@@ -72,8 +76,8 @@ export class MarkdownArticleSystem {
     renderArticleList() {
         const activeArticle = this.currentArticle;
         
-        // Filter out any existing notifications before re-rendering
-        const items = this.articleListElement.querySelectorAll('.article-item');
+        // Remove both article items and loading indicator
+        const items = this.articleListElement.querySelectorAll('.article-item, .loading-indicator');
         items.forEach(item => item.remove());
 
         if (this.articles.length === 0) {
