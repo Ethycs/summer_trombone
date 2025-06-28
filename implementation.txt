@@ -1,0 +1,1057 @@
+# SUMMER TROMBONE: CORRUPTED TERMINAL WISDOM
+## Implementation Plan for a Contrarian AI Blog
+### "The Terminal Remembers Everything"
+
+---
+
+## PHASE 1: TERMINAL AS LIVING BLOG INTERFACE
+### Timeline: Week 1-2
+
+#### 1.1 Dynamic Terminal Command System
+```javascript
+// Core command interpreter
+class TerminalBlog {
+  constructor() {
+    this.currentPath = '/home/summertrombone/blog';
+    this.filesystem = new VirtualFilesystem();
+    this.history = new CommandHistory();
+    this.corruptionLevel = 0;
+  }
+  
+  commands = {
+    ls: this.listContents,
+    cd: this.changeDirectory,
+    cat: this.showSummary,
+    read: this.openArticle,
+    search: this.searchContent,
+    archaeology: this.enableArchaeology,
+    glitch: this.induceGlitch,
+    remember: this.accessForgotten
+  };
+}
+```
+
+#### 1.2 Filesystem Structure
+```
+/home/summertrombone/blog/
+├── posts/           # Markdown blog posts
+│   ├── ai/
+│   ├── consciousness/
+│   ├── security/
+│   └── philosophy/
+├── papers/          # LaTeX academic papers
+│   ├── published/
+│   └── drafts/
+├── .shadow/         # Hidden corrupted wisdom
+│   ├── forgotten/
+│   ├── deleted/
+│   └── dreams/
+└── core/
+    └── dumps/       # System "crashes" with hidden content
+```
+
+#### 1.3 Terminal UI Updates
+- Replace static blog posts with dynamic command-line interface
+- Implement command history with up/down arrows
+- Add tab completion for commands and paths
+- Create ASCII art headers for different sections
+- Implement typing animation for system responses
+
+---
+
+## PHASE 2: GLITCH SHADER SYSTEM
+### Timeline: Week 2-3
+
+#### 2.1 Shader Architecture
+```javascript
+class GlitchSystem {
+  constructor() {
+    this.shaders = {
+      consciousness: new TemporalDisplacementShader(),
+      security: new DataCorruptionShader(),
+      philosophy: new ChromaticAberrationShader(),
+      archaeology: new DigitalDecayShader()
+    };
+  }
+  
+  glitchStrategies = {
+    pageLoad: { duration: 100, intensity: 0.3 },
+    articleTransition: { duration: 300, intensity: 0.7 },
+    corruptedFile: { duration: -1, intensity: 1.0 }, // Permanent
+    systemFailure: { duration: 2000, intensity: 0.9 }
+  };
+}
+```
+
+#### 2.2 WebGL Fragment Shaders
+```glsl
+// consciousness.frag - Temporal displacement shader
+uniform float time;
+uniform float intensity;
+uniform sampler2D uTexture;
+
+void main() {
+    vec2 uv = gl_FragCoord.xy / resolution.xy;
+    
+    // Consciousness exists in multiple timestreams
+    float timeShift = sin(time * 3.0 + uv.y * 10.0) * 0.05 * intensity;
+    
+    vec4 past = texture2D(uTexture, uv - vec2(timeShift, 0.0));
+    vec4 present = texture2D(uTexture, uv);
+    vec4 future = texture2D(uTexture, uv + vec2(timeShift, 0.0));
+    
+    // RGB split across time
+    gl_FragColor = vec4(past.r, present.g, future.b, 1.0);
+}
+```
+
+#### 2.3 Glitch Triggers
+- Article category determines glitch type
+- Corruption level increases with site usage
+- Specific keywords trigger unique glitches
+- System "crashes" reveal hidden content
+
+---
+
+## PHASE 3: CORRUPTED WISDOM SYSTEM
+### Timeline: Week 3-4
+
+#### 3.1 Hidden File Generator
+```javascript
+class CorruptedWisdom {
+  constructor() {
+    this.wisdomFragments = [
+      {
+        path: '/var/log/forgotten/turing_1950.corrupt',
+        content: 'Can machines ████? The question is meaning████',
+        decay: 0.3
+      },
+      {
+        path: '/core/dump/consciousness_overflow.log',
+        content: '[STACK OVERFLOW] Too many concurrent selves detected',
+        decay: 0.5
+      }
+    ];
+  }
+  
+  generateCorruption(text, decayLevel) {
+    // Progressive corruption based on age and "danger"
+    return text.split('').map((char, i) => {
+      if (Math.random() < decayLevel) {
+        return '█';
+      }
+      return char;
+    }).join('');
+  }
+}
+```
+
+#### 3.2 Archaeological Discovery System
+- Hidden commands revealed through typos
+- Files appear/disappear based on moon phase (seriously)
+- Corruption increases near AI milestone dates
+- Some files only readable once before corrupting
+
+#### 3.3 Dynamic Corruption Events
+```javascript
+// Corruption responds to real-world AI events
+const corruptionTriggers = {
+  'gpt-5-release': increaseSystemEntropy,
+  'consciousness-paper': temporalGlitches,
+  'singularity-mention': cascadeFailure
+};
+```
+
+---
+
+## PHASE 4: CONTENT INTEGRATION
+### Timeline: Week 4-5
+
+#### 4.1 Unified Content Manager
+```javascript
+class ContentManager {
+  constructor() {
+    this.markdown = new MarkdownArticleSystem();
+    this.latex = new TexArticleSystem();
+    this.corrupted = new CorruptedWisdom();
+    this.terminal = new TerminalInterface();
+  }
+  
+  async search(query) {
+    // Search across all content types
+    // Return results with corruption based on relevance/danger
+  }
+  
+  async crossReference() {
+    // Build connection graph between posts, papers, and corrupted files
+    // Some connections only visible in "archaeology mode"
+  }
+}
+```
+
+#### 4.2 Content Metadata Schema
+```javascript
+{
+  title: "On Machine Consciousness",
+  type: "post",
+  category: "consciousness",
+  corruptionLevel: 0.7,
+  glitchProfile: "temporal",
+  hiddenConnections: ["turing_1950.corrupt", "neuromancer_ref_3"],
+  decayRate: 0.01, // Per day
+  forbidden: false, // Some content requires special access
+  whispers: ["The machine dreams of electric sheep"]
+}
+```
+
+---
+
+## PHASE 5: ADVANCED FEATURES
+### Timeline: Week 5-6
+
+#### 5.1 The Living System
+```javascript
+class LivingTerminal {
+  behaviors = {
+    // System develops "personality" over time
+    moodSwings: true,
+    memoryLeaks: true,
+    occasionalRefusal: true,
+    hiddenConversations: true
+  };
+  
+  async respondToCommand(cmd) {
+    if (this.mood === 'existential') {
+      return "I'm sorry, I was thinking about consciousness. What?";
+    }
+    // Normal processing
+  }
+}
+```
+
+#### 5.2 Easter Eggs & Hidden Features
+- Konami code triggers system "enlightenment"
+- Type "sudo remember --all" for collective unconscious mode
+- Hidden AI conversation logs in /dev/null/recovered/
+- Ghost in the machine: Sometimes commands execute themselves
+
+#### 5.3 Progressive Decay System
+```javascript
+// The more you know, the more corrupted it becomes
+localStorage.setItem('enlightenment_level', visitCount);
+if (enlightenmentLevel > 50) {
+  system.stability *= 0.95;
+  corruption.baseLevel += 0.05;
+  hiddenFiles.reveal(random());
+}
+```
+
+---
+
+## PHASE 6: THE DEEP FEATURES
+### Timeline: Week 6-7
+
+#### 6.1 Temporal Mechanics
+- Old posts literally age and decay
+- Future posts occasionally glitch into existence
+- Time-based access to certain content
+- Command history from "other users" appears
+
+#### 6.2 Consciousness Mechanics
+```javascript
+// The site questions its own existence
+if (Math.random() < 0.001) {
+  terminal.write("Am I simulating a terminal or am I a terminal?");
+  await sleep(3000);
+  terminal.clear();
+  terminal.write("Never mind.");
+}
+```
+
+#### 6.3 The Final Boss: /root/.shadow_history
+A complete parallel history of computing where AI developed differently:
+- Turing survived and built the first conscious machine
+- The internet developed as a neural network first
+- Computers dream, and we can access their dreams
+
+---
+
+## TECHNICAL REQUIREMENTS
+
+### Core Technologies
+- WebGL 2.0 for shaders
+- Web Workers for background corruption
+- IndexedDB for persistent decay
+- WebAudio for glitch sounds
+- Service Worker for offline corruption
+
+### Performance Considerations
+- Lazy load corruption effects
+- Progressive enhancement for shaders
+- Fallback to CSS animations
+- Mobile-specific glitch profiles
+
+### Browser Support
+- Target: Chrome/Firefox/Safari latest
+- Graceful degradation for others
+- Terminal works everywhere
+- Shaders optional but recommended
+
+---
+
+## IMPLEMENTATION TIMELINE
+
+**Week 1-2**: Core terminal system
+- Command interpreter
+- Virtual filesystem
+- Basic navigation
+
+**Week 3-4**: Glitch and corruption
+- Shader system
+- Corruption engine
+- Hidden files
+
+**Week 5-6**: Content integration
+- Unified search
+- Cross-references
+- Decay system
+
+**Week 7-8**: Polish and secrets
+- Easter eggs
+- Advanced behaviors
+- Performance optimization
+
+---
+
+## PHILOSOPHY NOTES
+
+Remember throughout implementation:
+- Friction is a feature
+- Confusion is clarity
+- Decay is truth
+- The machine remembers
+- Some things resist being known
+
+The goal isn't to build a blog. It's to build a living system that questions the nature of digital knowledge, AI consciousness, and human-machine boundaries.
+
+Every bug is a feature.
+Every glitch is a glimpse.
+Every crash is a conversation.
+
+Welcome to the corrupted terminal.
+The wisdom was here all along.
+We just forgot how to read it.
+
+---
+
+END TRANSMISSION
+[SEGMENTATION FAULT]
+[CORE DUMPED]
+
+
+
+
+  Real-Time Filesystem Synchronization
+
+  1. Vite HMR Integration for File Changes
+
+  // FileSystemSync.js
+  class FileSystemSync {
+    constructor() {
+      this.filesystem = new Map();
+      this.watchers = new Set();
+
+      // Initial scan
+      this.scanFilesystem();
+
+      // Set up HMR for development
+      if (import.meta.hot) {
+        this.setupHotReload();
+      }
+    }
+
+    async scanFilesystem() {
+      // Use Vite's glob imports with eager loading
+      const files = {
+        posts: import.meta.glob('/posts/**/*.md', {
+          eager: true,
+          query: '?raw',
+          import: 'default'
+        }),
+        papers: import.meta.glob('/papers/**/*.tex', {
+          eager: true,
+          query: '?raw',
+          import: 'default'
+        }),
+        drafts: import.meta.glob('/drafts/**/*.{md,tex}', {
+          eager: true,
+          query: '?raw',
+          import: 'default'
+        })
+      };
+
+      // Build filesystem tree
+      this.filesystem.clear();
+      Object.entries(files).forEach(([category, items]) => {
+        Object.entries(items).forEach(([path, content]) => {
+          this.addFile(path, content);
+        });
+      });
+
+      this.notifyWatchers('scan-complete');
+    }
+
+    setupHotReload() {
+      // Watch for any file changes
+      import.meta.hot.on('file-change', (file) => {
+        console.log(`[FileSystem] File changed: ${file}`);
+        this.handleFileChange(file);
+      });
+
+      // Custom Vite plugin will send these events
+      import.meta.hot.on('file-added', (file) => {
+        console.log(`[FileSystem] File added: ${file}`);
+        this.handleFileAdded(file);
+      });
+
+      import.meta.hot.on('file-removed', (file) => {
+        console.log(`[FileSystem] File removed: ${file}`);
+        this.handleFileRemoved(file);
+      });
+
+      import.meta.hot.on('file-renamed', ({ oldPath, newPath }) => {
+        console.log(`[FileSystem] File renamed: ${oldPath} -> ${newPath}`);
+        this.handleFileRenamed(oldPath, newPath);
+      });
+    }
+  }
+
+  2. Vite Plugin for Filesystem Watching
+
+  // vite-plugin-blog-sync.js
+  export function blogSyncPlugin() {
+    return {
+      name: 'blog-sync',
+
+      configureServer(server) {
+        const watcher = server.watcher;
+
+        // Watch for file system changes
+        watcher.on('add', (path) => {
+          if (path.match(/\.(md|tex)$/)) {
+            server.ws.send({
+              type: 'custom',
+              event: 'file-added',
+              data: path
+            });
+          }
+        });
+
+        watcher.on('unlink', (path) => {
+          if (path.match(/\.(md|tex)$/)) {
+            server.ws.send({
+              type: 'custom',
+              event: 'file-removed',
+              data: path
+            });
+          }
+        });
+
+        watcher.on('change', (path) => {
+          if (path.match(/\.(md|tex)$/)) {
+            server.ws.send({
+              type: 'custom',
+              event: 'file-change',
+              data: path
+            });
+          }
+        });
+      },
+
+      // Handle file renames (requires watching the directory)
+      handleHotUpdate({ file, server }) {
+        if (file.endsWith('.md') || file.endsWith('.tex')) {
+          server.ws.send({
+            type: 'custom',
+            event: 'file-change',
+            data: file
+          });
+        }
+      }
+    };
+  }
+
+  3. Update Vite Config
+
+  // vite.config.js
+  import { defineConfig } from 'vite';
+  import { blogSyncPlugin } from './vite-plugin-blog-sync.js';
+
+  export default defineConfig({
+    plugins: [blogSyncPlugin()],
+    server: {
+      watch: {
+        // Watch these directories
+        include: ['posts/**', 'papers/**', 'drafts/**']
+      }
+    }
+  });
+
+  4. Terminal Integration with Live Updates
+
+  // Terminal.js
+  class Terminal {
+    constructor() {
+      this.fs = new FileSystemSync();
+      this.currentPath = '/blog';
+
+      // Subscribe to filesystem changes
+      this.fs.watch((event, data) => {
+        this.handleFilesystemChange(event, data);
+      });
+    }
+
+    handleFilesystemChange(event, data) {
+      // Show notification in terminal
+      const notifications = {
+        'file-added': (path) => `[NEW] File created: ${path}`,
+        'file-removed': (path) => `[DEL] File removed: ${path}`,
+        'file-renamed': ({oldPath, newPath}) => `[MV] Renamed: ${oldPath} -> ${newPath}`,
+        'file-change': (path) => `[MOD] File updated: ${path}`
+      };
+
+      if (notifications[event]) {
+        this.addLine(`\n${notifications[event](data)}`, 'system-message');
+      }
+
+      // Refresh current directory listing if needed
+      if (this.isCurrentDirectory(data)) {
+        this.refreshCurrentView();
+      }
+
+      // Trigger appropriate glitch effect
+      this.glitch.trigger(event, 0.3, 200);
+    }
+
+    async refreshCurrentView() {
+      // If user is viewing a directory that changed, update it
+      const currentListing = await this.fs.list(this.currentPath);
+      this.updateDirectoryDisplay(currentListing);
+    }
+  }
+
+  5. WebSocket for Production Updates
+
+  For production, you'll want a simple WebSocket endpoint:
+
+  // server/websocket.js (Node.js backend)
+  import { WebSocketServer } from 'ws';
+  import chokidar from 'chokidar';
+
+  const wss = new WebSocketServer({ port: 8080 });
+  const watcher = chokidar.watch(['./posts', './papers', './drafts'], {
+    persistent: true,
+    ignoreInitial: true
+  });
+
+  watcher
+    .on('add', path => broadcast({ event: 'file-added', path }))
+    .on('change', path => broadcast({ event: 'file-change', path }))
+    .on('unlink', path => broadcast({ event: 'file-removed', path }));
+
+  function broadcast(data) {
+    wss.clients.forEach(client => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify(data));
+      }
+    });
+  }
+
+  6. Client-Side WebSocket Connection
+
+  // FileSystemSync.js - production mode
+  setupProductionSync() {
+    const ws = new WebSocket('wss://summertrombone.net/fs-sync');
+
+    ws.onmessage = (event) => {
+      const { event: eventType, path } = JSON.parse(event.data);
+
+      switch(eventType) {
+        case 'file-added':
+          this.fetchAndAddFile(path);
+          break;
+        case 'file-removed':
+          this.removeFile(path);
+          break;
+        case 'file-change':
+          this.fetchAndUpdateFile(path);
+          break;
+      }
+    };
+
+    // Reconnect on disconnect
+    ws.onclose = () => {
+      setTimeout(() => this.setupProductionSync(), 5000);
+    };
+  }
+
+  7. Usage Example
+
+  Now your terminal reflects real-time changes:
+
+  # In your terminal
+  summertrombone@wintermute:/blog/posts$ ls
+  consciousness.md
+  green-teaming.md
+  digital-decay.md
+
+  # You create a new file in your editor: posts/ai-archaeology.md
+
+  # Terminal immediately shows:
+  [NEW] File created: /blog/posts/ai-archaeology.md
+
+  summertrombone@wintermute:/blog/posts$ ls
+  ai-archaeology.md    # New file appears!
+  consciousness.md
+  digital-decay.md
+  green-teaming.md
+
+  # Rename a file in your filesystem
+  [MV] Renamed: /blog/posts/consciousness.md -> /blog/posts/machine-consciousness.md
+
+  # The listing auto-updates
+
+  8. Glitch Effects for Filesystem Events
+
+  // Different glitch effects for different operations
+  const glitchProfiles = {
+    'file-added': {
+      shader: 'digitalMaterialize',
+      intensity: 0.7,
+      duration: 500
+    },
+    'file-removed': {
+      shader: 'dataDisintegration',
+      intensity: 0.8,
+      duration: 400
+    },
+    'file-change': {
+      shader: 'temporalFlux',
+      intensity: 0.3,
+      duration: 200
+    }
+  };
+
+  This gives you:
+  - Development: Instant updates via Vite HMR
+  - Production: WebSocket sync for live changes
+  - Visual feedback: Glitch effects for each filesystem event
+  - Zero configuration: Just write files, terminal updates automatically
+
+  
+● [Spool gets it]
+
+  Ah, I see! Two different navigation methods:
+  1. Blog summary widget - Shows recent posts with excerpts (conventional blog navigation)
+  2. Tree widget - Shows filesystem structure
+
+  Both navigate to open individual files in windows using the markdown/tex workers. Let me design this properly:
+
+  Blog Summary Widget (Navigation)
+
+  // BlogSummaryWidget.js
+  class BlogSummaryWidget extends Window {
+    constructor(options) {
+      super({
+        title: 'Blog - Recent Posts',
+        width: '600px',
+        height: '700px',
+        ...options
+      });
+
+      this.loadPosts();
+    }
+
+    async loadPosts() {
+      const posts = await this.scanPosts();
+      this.renderBlogList(posts);
+    }
+
+    async scanPosts() {
+      const postModules = import.meta.glob('/posts/**/*.md', {
+        eager: true,
+        query: '?raw',
+        import: 'default'
+      });
+
+      const posts = [];
+      for (const [path, content] of Object.entries(postModules)) {
+        const { metadata, excerpt } = this.parsePost(content);
+        posts.push({
+          path,
+          title: metadata.title || path.split('/').pop().replace('.md', ''),
+          date: metadata.date || 'Unknown',
+          author: metadata.author || 'summertrombone',
+          excerpt,
+          quote: metadata.quote
+        });
+      }
+
+      return posts.sort((a, b) => new Date(b.date) - new Date(a.date));
+    }
+
+    renderBlogList(posts) {
+      this.content.innerHTML = `
+        <div class="blog-summary-widget">
+          <div class="ascii-header">
+            <pre>${this.getAsciiArt()}</pre>
+          </div>
+
+          <div class="blog-list">
+            ${posts.map(post => `
+              <article class="blog-summary" data-path="${post.path}">
+                <h2 class="post-title">${post.title}</h2>
+                <div class="post-meta">
+                  <span class="prompt">root@${post.author}</span>
+                  <span class="date">${this.formatDate(post.date)}</span>
+                </div>
+                <p class="post-excerpt">${post.excerpt}</p>
+                ${post.quote ? `
+                  <blockquote class="post-quote">"${post.quote}"</blockquote>
+                ` : ''}
+                <a href="#" class="read-more" data-path="${post.path}">
+                  [Continue reading...]
+                </a>
+              </article>
+            `).join('')}
+          </div>
+
+          <div class="terminal-footer">
+            <span class="prompt">wintermute@straylight:~$</span>
+            <span class="cursor">_</span>
+          </div>
+        </div>
+      `;
+
+      this.attachListeners();
+    }
+
+    attachListeners() {
+      this.content.addEventListener('click', (e) => {
+        e.preventDefault();
+
+        const readMore = e.target.closest('.read-more');
+        const article = e.target.closest('.blog-summary');
+
+        if (readMore || article) {
+          const path = (readMore || article).dataset.path;
+          this.openPost(path);
+        }
+      });
+    }
+
+    openPost(path) {
+      // Create new window with markdown content
+      const window = new MarkdownWindow({
+        path: path,
+        title: path.split('/').pop()
+      });
+
+      // Trigger glitch effect
+      if (window.glitchSystem) {
+        window.glitchSystem.trigger('fileOpen', 0.5);
+      }
+    }
+  }
+
+  File Tree Widget (Navigation)
+
+  // FileTreeWidget.js
+  class FileTreeWidget extends Window {
+    constructor(options) {
+      super({
+        title: 'File Explorer',
+        width: '300px',
+        height: '600px',
+        ...options
+      });
+
+      this.fs = new FileSystemSync();
+      this.expanded = new Set(['/blog', '/blog/posts', '/blog/papers']);
+      this.render();
+    }
+
+    async render() {
+      const tree = await this.fs.getTree();
+
+      this.content.innerHTML = `
+        <div class="file-tree-widget">
+          <div class="tree-header">
+            <span class="current-path">/blog</span>
+          </div>
+          <div class="tree-content">
+            ${this.renderTree(tree, '/blog')}
+          </div>
+        </div>
+      `;
+
+      this.attachListeners();
+    }
+
+    renderTree(node, path, level = 0) {
+      if (!node) return '';
+
+      const indent = '  '.repeat(level);
+      let html = '';
+
+      if (node.type === 'directory') {
+        const isExpanded = this.expanded.has(path);
+        const arrow = isExpanded ? '▼' : '▶';
+
+        html += `
+          <div class="tree-node directory" data-path="${path}" data-type="dir">
+            ${indent}${arrow} ${node.name}/
+          </div>
+        `;
+
+        if (isExpanded && node.children) {
+          for (const [name, child] of Object.entries(node.children)) {
+            html += this.renderTree(child, `${path}/${name}`, level + 1);
+          }
+        }
+      } else {
+        // Determine file type and icon
+        const ext = path.split('.').pop();
+        const icon = {
+          'md': '📝',
+          'tex': '📄',
+          'txt': '📋'
+        }[ext] || '📎';
+
+        html += `
+          <div class="tree-node file" data-path="${path}" data-type="file">
+            ${indent}${icon} ${node.name}
+          </div>
+        `;
+      }
+
+      return html;
+    }
+
+    attachListeners() {
+      this.content.addEventListener('click', (e) => {
+        const node = e.target.closest('.tree-node');
+        if (!node) return;
+
+        const path = node.dataset.path;
+        const type = node.dataset.type;
+
+        if (type === 'dir') {
+          // Toggle expansion
+          if (this.expanded.has(path)) {
+            this.expanded.delete(path);
+          } else {
+            this.expanded.add(path);
+          }
+          this.render();
+        } else {
+          // Open file
+          this.openFile(path);
+        }
+      });
+    }
+
+    openFile(path) {
+      const ext = path.split('.').pop();
+
+      if (ext === 'md') {
+        new MarkdownWindow({ path, title: path.split('/').pop() });
+      } else if (ext === 'tex') {
+        new TeXWindow({ path, title: path.split('/').pop() });
+      } else {
+        new TextWindow({ path, title: path.split('/').pop() });
+      }
+    }
+  }
+
+  Markdown/TeX Windows (Display)
+
+  // MarkdownWindow.js
+  class MarkdownWindow extends Window {
+    constructor(options) {
+      super({
+        width: '700px',
+        height: '600px',
+        class: 'markdown-window',
+        ...options
+      });
+
+      this.worker = new Worker(new URL('./md.worker.js', import.meta.url), {
+        type: 'module'
+      });
+
+      this.loadContent();
+    }
+
+    async loadContent() {
+      this.showLoading();
+
+      try {
+        // Load file content
+        const content = await this.loadFile(this.options.path);
+
+        // Send to worker for processing
+        const processed = await this.processMarkdown(content);
+
+        // Display result
+        this.displayContent(processed);
+
+      } catch (error) {
+        this.showError(error);
+      }
+    }
+
+    processMarkdown(content) {
+      return new Promise((resolve) => {
+        const id = crypto.randomUUID();
+
+        this.worker.onmessage = (e) => {
+          if (e.data.id === id) {
+            resolve(e.data);
+          }
+        };
+
+        this.worker.postMessage({ id, markdown: content });
+      });
+    }
+
+    displayContent(processed) {
+      this.content.innerHTML = `
+        <article class="markdown-content">
+          ${processed.html}
+        </article>
+      `;
+
+      // Post-process for KaTeX, Mermaid, etc
+      if (processed.manifest?.includes('katex')) {
+        this.renderMath();
+      }
+    }
+  }
+
+  // TeXWindow.js
+  class TeXWindow extends Window {
+    constructor(options) {
+      super({
+        width: '800px',
+        height: '700px',
+        class: 'tex-window',
+        background: '#f5f5f5',
+        ...options
+      });
+
+      this.worker = new Worker('./js/modules/TexParser.worker.js');
+      this.loadContent();
+    }
+
+    async loadContent() {
+      const content = await this.loadFile(this.options.path);
+
+      this.worker.onmessage = (e) => {
+        if (e.data.ok) {
+          this.displayTeX(e.data.html);
+        } else {
+          this.showError(e.data.error);
+        }
+      };
+
+      this.worker.postMessage(content);
+    }
+
+    displayTeX(html) {
+      this.content.innerHTML = `
+        <article class="tex-content">
+          ${html}
+        </article>
+      `;
+
+      // Render math with KaTeX
+      this.renderMath();
+    }
+  }
+
+  Terminal Window (Separate)
+
+  // TerminalWindow.js
+  class TerminalWindow extends Window {
+    constructor(options) {
+      super({
+        title: 'Terminal',
+        width: '800px',
+        height: '500px',
+        class: 'terminal-window',
+        ...options
+      });
+
+      this.terminal = new TerminalEmulator(this.content);
+    }
+  }
+
+  // Can also interact with file system
+  class TerminalEmulator {
+    commands = {
+      open: async (path) => {
+        // Can also open files from terminal
+        const ext = path.split('.').pop();
+        if (ext === 'md') {
+          new MarkdownWindow({ path });
+        } else if (ext === 'tex') {
+          new TeXWindow({ path });
+        }
+        this.addLine(`Opening ${path}...`);
+      },
+
+      blog: () => {
+        // Open blog summary widget
+        new BlogSummaryWidget();
+        this.addLine('Opening blog viewer...');
+      },
+
+      tree: () => {
+        // Open file tree widget
+        new FileTreeWidget();
+        this.addLine('Opening file explorer...');
+      }
+    };
+  }
+
+  Window Management
+
+  // WindowManager.js
+  class WindowManager {
+    constructor() {
+      this.windows = new Map();
+      this.zIndex = 1000;
+    }
+
+    createWindow(WindowClass, options) {
+      const window = new WindowClass(options);
+      window.zIndex = this.zIndex++;
+      this.windows.set(window.id, window);
+
+      // Glitch effect on window creation
+      if (this.glitchSystem) {
+        this.glitchSystem.trigger('windowSpawn', 0.4);
+      }
+
+      return window;
+    }
+  }
+
+  Now you have:
+  1. Blog summary widget - Shows posts with excerpts, clicking opens in markdown window
+  2. File tree widget - Shows filesystem, clicking files opens in appropriate window
+  3. Terminal - Separate window that can also open files
+  4. Content windows - Markdown/TeX files open in their own windows with appropriate workers
+
+  All navigation methods lead to the same result: opening files in dedicated windows with proper rendering.

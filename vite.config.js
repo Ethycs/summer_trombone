@@ -1,5 +1,12 @@
 import { defineConfig } from 'vite';
+import { blogSyncPlugin } from './vite-plugin-blog-sync.js';
 
 export default defineConfig({
-  // No special config needed for workers
+  plugins: [blogSyncPlugin()],
+  server: {
+    watch: {
+      // Watch these directories for changes
+      include: ['posts/**', 'papers/**', 'drafts/**'],
+    },
+  },
 });

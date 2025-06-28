@@ -1,0 +1,37 @@
+name: Generate Filesystem Manifest
+
+on:
+  push:
+    branches:
+      - main # Or your default branch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Generate manifest
+        id: generate_manifest
+        run: |
+          echo "{\"files\":[" > filesystem.json
+          find posts papers drafts -type f \( -name "*.md" -o -name "*.tex" \) | sed 's/^/\//' | sed 's/.*/"&"/' | paste -sd, - >> filesystem.json
+          echo "]}" >> filesystem.json
+          echo "Manifest generated:"
+          cat filesystem.json
+
+      - name: Commit and push manifest
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "chore: Update filesystem.json manifest"
+          file_pattern: filesystem.json
+          commit_user_name: "github-actions[bot]"
+          commit_user_email: "github-actions[bot]@users.noreply.github.com"
+          commit_author: "github-actions[bot] <github-actions[bot]@users.noreply.github.com>"

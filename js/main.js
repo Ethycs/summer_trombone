@@ -58,7 +58,7 @@ class TerminalApp {
         // Initialize TeX Article System for all article windows
         document.querySelectorAll('.articles-window').forEach(async (articleWindow) => {
             try {
-                const texSystem = new TexArticleSystem(articleWindow);
+                const texSystem = new TexArticleSystem(articleWindow, this.modules.terminalEffects);
                 await texSystem.init();
                 // Store instances if needed, e.g., on the element itself
                 articleWindow.texSystem = texSystem;
@@ -70,7 +70,7 @@ class TerminalApp {
         // Initialize Markdown Article System for all blog windows
         document.querySelectorAll('.markdown-blog-window').forEach(async (blogWindow) => {
             try {
-                const markdownSystem = new MarkdownArticleSystem(blogWindow);
+                const markdownSystem = new MarkdownArticleSystem(blogWindow, this.modules.terminalEffects);
                 await markdownSystem.init();
                 blogWindow.markdownSystem = markdownSystem;
             } catch (error) {

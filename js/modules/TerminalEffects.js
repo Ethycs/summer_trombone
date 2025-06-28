@@ -304,6 +304,28 @@ export class TerminalEffects {
         }, duration);
     }
 
+    /**
+     * Triggers a specific glitch effect based on filesystem events.
+     * @param {string} event - The type of event ('file-added', 'file-removed', 'file-change').
+     */
+    trigger(event) {
+        const glitchProfiles = {
+            'file-added': 'glitch-materialize',
+            'file-removed': 'glitch-disintegrate',
+            'file-change': 'glitch-flux'
+        };
+
+        const effectClass = glitchProfiles[event];
+        if (!effectClass) return;
+
+        const target = document.body;
+        target.classList.add(effectClass);
+
+        setTimeout(() => {
+            target.classList.remove(effectClass);
+        }, 500); // Duration of the effect
+    }
+
     // Cleanup methods
     destroy() {
         if (this.flickerInterval) {

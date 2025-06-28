@@ -1,8 +1,10 @@
+import { FileSystemSync } from './FileSystemSync.js';
+
 /**
  * Markdown Article System - Handles loading and rendering of Markdown articles
  */
 export class MarkdownArticleSystem {
-    constructor(containerElement) {
+    constructor(containerElement, terminalEffects) {
         if (!containerElement) {
             throw new Error('MarkdownArticleSystem requires a container element');
         }
@@ -14,36 +16,85 @@ export class MarkdownArticleSystem {
             throw new Error('Container element must have .article-list and .article-content children.');
         }
 
+        this.fs = new FileSystemSync();
+        this.terminalEffects = terminalEffects;
         this.articles = [];
         this.currentArticle = null;
         this.worker = new Worker(new URL('./md.worker.js', import.meta.url), { type: 'module' });
     }
 
     async init() {
-        await this.loadArticleList();
         this.setupEventListeners();
+        this.fs.watch((event, data) => this.handleFilesystemChange(event, data));
+        // Initial load is handled by the watcher via 'scan-complete'
     }
 
-    async loadArticleList() {
-        const modules = import.meta.glob('../../articles-md/*.md', { query: '?raw', import: 'default' });
-        this.articles = await Promise.all(
-            Object.entries(modules).map(async ([path, importer]) => {
-                const filename = path.split('/').pop();
-                return { filename, importer };
-            })
-        );
+    handleFilesystemChange(event, data) {
+        const notifications = {
+            'file-added': (path) => `[NEW] File created: ${path}`,
+            'file-removed': (path) => `[DEL] File removed: ${path}`,
+            'file-change': (path) => `[MOD] File updated: ${path}`
+        };
+
+        if (notifications[event]) {
+            this.showNotification(notifications[event](data));
+            if (this.terminalEffects) {
+                this.terminalEffects.trigger(event);
+            }
+        }
+
+        if (event === 'scan-complete' || event.startsWith('file-')) {
+            this.refreshArticleList();
+        }
+    }
+
+    showNotification(message) {
+        const notifElement = document.createElement('div');
+        notifElement.className = 'system-message';
+        notifElement.textContent = message;
+        this.articleListElement.prepend(notifElement);
+        setTimeout(() => notifElement.remove(), 5000);
+    }
+
+    refreshArticleList() {
+        this.articles = this.fs.list('/posts/').map(entry => {
+            const filename = entry.path.split('/').pop();
+            return {
+                path: entry.path,
+                filename,
+                // In dev, content is pre-loaded. In prod, it's null.
+                content: entry.content 
+            };
+        });
         this.renderArticleList();
     }
 
     renderArticleList() {
+        const activeArticle = this.currentArticle;
+        
+        // Filter out any existing notifications before re-rendering
+        const items = this.articleListElement.querySelectorAll('.article-item');
+        items.forEach(item => item.remove());
+
         if (this.articles.length === 0) {
-            this.articleListElement.innerHTML = '<div class="error-message">No .md files found.</div>';
+            if (!this.articleListElement.querySelector('.error-message')) {
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error-message';
+                errorDiv.textContent = 'No .md files found.';
+                this.articleListElement.appendChild(errorDiv);
+            }
             return;
+        } else {
+            const errorDiv = this.articleListElement.querySelector('.error-message');
+            if (errorDiv) errorDiv.remove();
         }
 
-        this.articleListElement.innerHTML = this.articles.map(({ filename }) =>
-            `<div class="article-item" data-article="${filename}">${filename.replace('.md', '')}</div>`
-        ).join('');
+        const articleHtml = this.articles.map(({ filename }) => {
+            const isActive = filename === activeArticle ? 'active' : '';
+            return `<div class="article-item ${isActive}" data-article="${filename}">${filename.replace('.md', '')}</div>`;
+        }).join('');
+        
+        this.articleListElement.insertAdjacentHTML('beforeend', articleHtml);
     }
 
     setupEventListeners() {
@@ -69,6 +120,7 @@ export class MarkdownArticleSystem {
     }
 
     async loadArticle(filename) {
+        this.currentArticle = filename;
         try {
             this.articleContentElement.innerHTML = '<div class="loading-indicator">Loading article...</div>';
             
@@ -77,7 +129,12 @@ export class MarkdownArticleSystem {
                 throw new Error(`Article "${filename}" not found.`);
             }
 
-            const markdownContent = await article.importer();
+            let markdownContent = article.content;
+            // If content is not pre-loaded (e.g., in production), fetch it.
+            if (markdownContent === null) {
+                markdownContent = await this.fs.fetchFileContent(article.path);
+            }
+            
             const { html, manifest } = await this.renderMarkdown(markdownContent);
             
             this.articleContentElement.innerHTML = html;
@@ -87,6 +144,7 @@ export class MarkdownArticleSystem {
         } catch (error) {
             this.articleContentElement.innerHTML = 
                 `<div class="error-message">Error loading article: ${error.message}</div>`;
+            this.currentArticle = null;
         }
     }
 
