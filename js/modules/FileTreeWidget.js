@@ -24,21 +24,19 @@ export class FileTreeWidget {
     }
     
     async init() {
-        this.render();
         this.attachListeners();
     }
     
     async render() {
         const tree = await this.buildTree();
         
+        this.container.classList.add('file-tree-widget');
         this.container.innerHTML = `
-            <div class="file-tree-widget">
-                <div class="tree-header">
-                    <span class="current-path">${this.currentPath}</span>
-                </div>
-                <div class="tree-content">
-                    ${this.renderTree(tree, '/blog')}
-                </div>
+            <div class="tree-header">
+                <span class="current-path">${this.currentPath}</span>
+            </div>
+            <div class="tree-content">
+                ${this.renderTree(tree, '/blog')}
             </div>
         `;
     }
@@ -216,11 +214,11 @@ export class FileTreeWidget {
     handleFilesystemChange(event, data) {
         console.log(`[FileTreeWidget] Filesystem change: ${event}`, data);
         
-        // Show notification
-        this.showNotification(event, data);
-        
         // Refresh tree
         this.render();
+
+        // Show notification
+        this.showNotification(event, data);
     }
     
     showNotification(event, data) {

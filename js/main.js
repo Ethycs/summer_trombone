@@ -99,6 +99,14 @@ class TerminalApp {
     }
 
     setupGlobalEvents() {
+        // Add listener for the "Files" taskbar item
+        const filesTaskbarItem = document.querySelector('.taskbar-item:nth-child(7)');
+        if (filesTaskbarItem) {
+            filesTaskbarItem.addEventListener('click', () => {
+                this.modules.windowManager.toggleWindow('.file-tree-window');
+            });
+        }
+
         // Handle visibility change (tab switching)
         document.addEventListener('visibilitychange', () => {
             if (document.hidden) {
