@@ -3,7 +3,7 @@
  * Initializes all modules and manages the terminal interface
  */
 
-import { TexArticleSystem } from './modules/TexArticleSystem.js';
+import { TexPaperSystem } from './modules/TexPaperSystem.js';
 import { MarkdownArticleSystem } from './modules/MarkdownArticleSystem.js';
 import { WindowManager } from './modules/WindowManager.js';
 import { TerminalEffects } from './modules/TerminalEffects.js';
@@ -58,12 +58,12 @@ class TerminalApp {
         // Initialize TeX Article System for all article windows
         document.querySelectorAll('.articles-window').forEach(async (articleWindow) => {
             try {
-                const texSystem = new TexArticleSystem(articleWindow, this.modules.terminalEffects);
+                const texSystem = new TexPaperSystem(articleWindow, this.modules.terminalEffects);
                 await texSystem.init();
                 // Store instances if needed, e.g., on the element itself
                 articleWindow.texSystem = texSystem;
             } catch (error) {
-                console.error('Failed to initialize TexArticleSystem for a window:', error);
+                console.error('Failed to initialize TexPaperSystem for a window:', error);
             }
         });
 

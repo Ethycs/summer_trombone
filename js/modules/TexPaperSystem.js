@@ -1,12 +1,12 @@
 import { FileSystemSync } from './FileSystemSync.js';
 
 /**
- * TeX Article System - Handles loading and rendering of LaTeX articles
+ * TeX Paper System - Handles loading and rendering of LaTeX papers
  */
-export class TexArticleSystem {
+export class TexPaperSystem {
     constructor(containerElement, terminalEffects) {
         if (!containerElement) {
-            throw new Error('TexArticleSystem requires a container element');
+            throw new Error('TexPaperSystem requires a container element');
         }
         this.container = containerElement;
         this.articleListElement = this.container.querySelector('.article-list');
@@ -57,8 +57,8 @@ export class TexArticleSystem {
 
     refreshArticleList() {
         const papers = this.fs.list('/blog/papers/');
-        console.log('[TexArticleSystem] Refreshing article list, found:', papers.length, 'files in /blog/papers/');
-        console.log('[TexArticleSystem] Papers:', papers);
+        console.log('[TexPaperSystem] Refreshing paper list, found:', papers.length, 'files in /blog/papers/');
+        console.log('[TexPaperSystem] Papers:', papers);
         
         this.articles = papers.map(entry => {
             const filename = entry.path.split('/').pop();
