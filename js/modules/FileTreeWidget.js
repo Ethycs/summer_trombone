@@ -125,7 +125,7 @@ export class FileTreeWidget {
                      data-type="dir"
                      style="padding-left: ${level * 20}px">
                     <span class="tree-arrow">${hasChildren ? arrow : ' '}</span>
-                    <span class="tree-icon">📁</span>
+                    <span class="tree-icon">[DIR]</span>
                     <span class="tree-name">${node.name}/</span>
                 </div>
             `;
@@ -139,10 +139,10 @@ export class FileTreeWidget {
             // Determine file type and icon
             const ext = path.split('.').pop();
             const icon = {
-                'md': '📝',
-                'tex': '📄',
-                'txt': '📋'
-            }[ext] || '📎';
+                'md': '[MD]',
+                'tex': '[TEX]',
+                'txt': '[TXT]'
+            }[ext] || '[FILE]';
             
             html += `
                 <div class="tree-node file" 
@@ -225,10 +225,10 @@ export class FileTreeWidget {
     
     showNotification(event, data) {
         const notifications = {
-            'file-added': (path) => `📄 New file: ${path.split('/').pop()}`,
-            'file-removed': (path) => `🗑️ Removed: ${path.split('/').pop()}`,
-            'file-change': (path) => `✏️ Modified: ${path.split('/').pop()}`,
-            'scan-complete': () => '🔄 Files refreshed'
+            'file-added': (path) => `[+] New file: ${path.split('/').pop()}`,
+            'file-removed': (path) => `[-] Removed: ${path.split('/').pop()}`,
+            'file-change': (path) => `[*] Modified: ${path.split('/').pop()}`,
+            'scan-complete': () => '[>] Files refreshed'
         };
         
         if (notifications[event]) {
