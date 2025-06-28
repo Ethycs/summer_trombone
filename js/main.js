@@ -8,6 +8,7 @@ import { MarkdownArticleSystem } from './modules/MarkdownArticleSystem.js';
 import { WindowManager } from './modules/WindowManager.js';
 import { TerminalEffects } from './modules/TerminalEffects.js';
 import { MobileHandler } from './modules/MobileHandler.js';
+import { FileTreeWidget } from './modules/FileTreeWidget.js';
 
 class TerminalApp {
     constructor() {
@@ -77,6 +78,22 @@ class TerminalApp {
                 console.error('Failed to initialize MarkdownArticleSystem for a window:', error);
             }
         });
+
+        // Initialize File Tree Widget
+        const fileTreeContainer = document.querySelector('#fileTreeContainer');
+        if (fileTreeContainer) {
+            try {
+                this.modules.fileTreeWidget = new FileTreeWidget(fileTreeContainer);
+                console.log('File Tree Widget initialized');
+                
+                // Handle file open events from the tree
+                fileTreeContainer.addEventListener('file-open', (event) => {
+                    this.handleFileOpen(event.detail.path);
+                });
+            } catch (error) {
+                console.error('Failed to initialize FileTreeWidget:', error);
+            }
+        }
 
         console.log('All modules initialized');
     }
@@ -210,6 +227,56 @@ class TerminalApp {
         // Close any open modals or return to normal state
         if (document.fullscreenElement) {
             document.exitFullscreen();
+        }
+    }
+
+    handleFileOpen(path) {
+        console.log('Opening file:', path);
+        
+        // Determine file type and open appropriate viewer
+        const ext = path.split('.').pop().toLowerCase();
+        
+        if (ext === 'md') {
+            // Find or create a markdown window
+            let markdownWindow = document.querySelector('.markdown-blog-window');
+            if (markdownWindow && markdownWindow.markdownSystem) {
+                // Make window visible
+                markdownWindow.style.display = 'block';
+                
+                // Load the specific file
+                const fileContent = this.modules.fileTreeWidget.fs.get(path);
+                if (fileContent && fileContent.content) {
+                    markdownWindow.markdownSystem.loadArticleContent(path, fileContent.content);
+                }
+                
+                // Bring to front if window manager exists
+                if (this.modules.windowManager) {
+                    this.modules.windowManager.bringToFront(markdownWindow);
+                }
+            }
+        } else if (ext === 'tex') {
+            // Find or create a tex window
+            let texWindow = document.querySelector('.articles-window');
+            if (texWindow && texWindow.texSystem) {
+                // Make window visible
+                texWindow.style.display = 'block';
+                
+                // Load the specific file
+                const fileContent = this.modules.fileTreeWidget.fs.get(path);
+                if (fileContent && fileContent.content) {
+                    texWindow.texSystem.loadArticleContent(path.split('/').pop(), fileContent.content);
+                }
+                
+                // Bring to front if window manager exists
+                if (this.modules.windowManager) {
+                    this.modules.windowManager.bringToFront(texWindow);
+                }
+            }
+        }
+        
+        // Trigger glitch effect
+        if (this.modules.terminalEffects) {
+            this.modules.terminalEffects.glitch(200, 0.3);
         }
     }
 
