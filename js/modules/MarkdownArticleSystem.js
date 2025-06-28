@@ -57,8 +57,8 @@ export class MarkdownArticleSystem {
     }
 
     refreshArticleList() {
-        const posts = this.fs.list('/posts/');
-        console.log('[MarkdownArticleSystem] Refreshing article list, found:', posts.length, 'files in /posts/');
+        const posts = this.fs.list('/blog/posts/');
+        console.log('[MarkdownArticleSystem] Refreshing article list, found:', posts.length, 'files in /blog/posts/');
         console.log('[MarkdownArticleSystem] Posts:', posts);
         
         this.articles = posts.map(entry => {

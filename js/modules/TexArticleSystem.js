@@ -56,8 +56,8 @@ export class TexArticleSystem {
     }
 
     refreshArticleList() {
-        const papers = this.fs.list('/papers/');
-        console.log('[TexArticleSystem] Refreshing article list, found:', papers.length, 'files in /papers/');
+        const papers = this.fs.list('/blog/papers/');
+        console.log('[TexArticleSystem] Refreshing article list, found:', papers.length, 'files in /blog/papers/');
         console.log('[TexArticleSystem] Papers:', papers);
         
         this.articles = papers.map(entry => {

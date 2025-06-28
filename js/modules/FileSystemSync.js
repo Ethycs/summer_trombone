@@ -55,9 +55,9 @@ class FileSystemSync {
 
     async scanWithViteGlob() {
         const files = {
-            posts: import.meta.glob('/posts/**/*.md', { eager: true, query: '?raw', import: 'default' }),
-            papers: import.meta.glob('/papers/**/*.tex', { eager: true, query: '?raw', import: 'default' }),
-            drafts: import.meta.glob('/drafts/**/*.{md,tex}', { eager: true, query: '?raw', import: 'default' })
+            posts: import.meta.glob('/blog/posts/**/*.md', { eager: true, query: '?raw', import: 'default' }),
+            papers: import.meta.glob('/blog/papers/**/*.tex', { eager: true, query: '?raw', import: 'default' }),
+            drafts: import.meta.glob('/blog/drafts/**/*.{md,tex}', { eager: true, query: '?raw', import: 'default' })
         };
 
         console.log('[FileSystemSync] Scanning with Vite glob patterns');
