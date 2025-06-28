@@ -235,6 +235,7 @@ class TerminalApp {
         
         // Determine file type and open appropriate viewer
         const ext = path.split('.').pop().toLowerCase();
+        const filename = path.split('/').pop();
         
         if (ext === 'md') {
             // Find or create a markdown window
@@ -243,11 +244,8 @@ class TerminalApp {
                 // Make window visible
                 markdownWindow.style.display = 'block';
                 
-                // Load the specific file
-                const fileContent = this.modules.fileTreeWidget.fs.get(path);
-                if (fileContent && fileContent.content) {
-                    markdownWindow.markdownSystem.loadArticleContent(path, fileContent.content);
-                }
+                // Load the article by filename
+                markdownWindow.markdownSystem.loadArticle(filename);
                 
                 // Bring to front if window manager exists
                 if (this.modules.windowManager) {
@@ -261,11 +259,8 @@ class TerminalApp {
                 // Make window visible
                 texWindow.style.display = 'block';
                 
-                // Load the specific file
-                const fileContent = this.modules.fileTreeWidget.fs.get(path);
-                if (fileContent && fileContent.content) {
-                    texWindow.texSystem.loadArticleContent(path.split('/').pop(), fileContent.content);
-                }
+                // Load the article by filename
+                texWindow.texSystem.loadArticle(filename);
                 
                 // Bring to front if window manager exists
                 if (this.modules.windowManager) {
