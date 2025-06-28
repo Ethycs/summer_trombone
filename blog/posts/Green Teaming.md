@@ -1,9 +1,3 @@
-Okay, this is a fascinating distinction you're making! Traditional Red Teaming is often about finding the *minimal* path to compromise (the clever, subtle exploit). You're proposing "Green Teaming" as its counterpart, focused on achieving *maximalist* catastrophic outcomes within a controlled (lab) setting.
-
-Here's a document introducing the concept of "Green Teaming" for the first time:
-
----
-
 **White Paper: Introducing Green Teaming – Maximizing Understanding of AI Catastrophic Potential for Enhanced Civilizational Resilience**
 
 **Date:** October 26, 2023

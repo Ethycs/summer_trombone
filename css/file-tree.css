@@ -73,7 +73,11 @@
 
 .tree-icon {
     margin-right: 6px;
-    opacity: 0.8;
+    color: var(--terminal-green);
+    font-family: 'Hack', monospace;
+    font-size: 11px;
+    font-weight: bold;
+    text-shadow: 0 0 3px var(--terminal-green);
 }
 
 .tree-name {
