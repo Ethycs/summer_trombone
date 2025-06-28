@@ -25,7 +25,7 @@ export class MarkdownArticleSystem {
     }
 
     async loadArticleList() {
-        const modules = import.meta.glob('../../articles-md/*.md', { as: 'raw' });
+        const modules = import.meta.glob('../../articles-md/*.md', { query: '?raw', import: 'default' });
         this.articles = await Promise.all(
             Object.entries(modules).map(async ([path, importer]) => {
                 const filename = path.split('/').pop();
@@ -99,16 +99,27 @@ export class MarkdownArticleSystem {
     }
 
     postProcess(manifest) {
+        // Handle KaTeX rendering if needed
+        if (manifest && manifest.includes('katex')) {
+            // markdown-it-katex already converted math to KaTeX HTML
+            // The KaTeX CSS should handle the display
+            // But let's log to verify
+            const katexElements = this.articleContentElement.querySelectorAll('.katex');
+            console.log(`[MarkdownArticleSystem] Found ${katexElements.length} KaTeX elements`);
+        }
+        
         // Find all mermaid code blocks and render them
-        this.articleContentElement.querySelectorAll('code.language-mermaid').forEach((el) => {
-            import('mermaid').then(({ default: mermaid }) => {
-                const code = el.textContent;
-                const container = document.createElement('div');
-                container.className = 'mermaid';
-                container.textContent = code;
-                el.parentNode.replaceWith(container);
-                mermaid.run({ nodes: [container] });
+        if (manifest && manifest.includes('mermaid')) {
+            this.articleContentElement.querySelectorAll('code.language-mermaid').forEach((el) => {
+                import('mermaid').then(({ default: mermaid }) => {
+                    const code = el.textContent;
+                    const container = document.createElement('div');
+                    container.className = 'mermaid';
+                    container.textContent = code;
+                    el.parentNode.replaceWith(container);
+                    mermaid.run({ nodes: [container] });
+                });
             });
-        });
+        }
     }
 }
