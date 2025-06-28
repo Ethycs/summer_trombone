@@ -5,7 +5,7 @@
     right: 50px;
     width: 300px;
     height: 500px;
-    z-index: 100;
+    /* Use default window z-index from windows.css */
 }
 
 /* File Tree Widget Styles */
@@ -16,13 +16,13 @@
     font-family: 'Hack', monospace;
     font-size: 13px;
     color: var(--terminal-green);
-    background: rgba(0, 0, 0, 0.8);
+    /* Remove background - inherit from window */
 }
 
 .tree-header {
     padding: 10px 15px;
     border-bottom: 1px solid var(--terminal-dim);
-    background: rgba(0, 0, 0, 0.9);
+    /* Remove custom background to match other windows */
     position: relative;
 }
 
@@ -51,7 +51,7 @@
 }
 
 .tree-node:hover {
-    background: rgba(0, 255, 0, 0.1);
+    background: rgba(0, 255, 0, 0.05); /* Lighter hover effect */
     color: var(--terminal-bright);
 }
 
