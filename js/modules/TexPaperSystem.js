@@ -65,7 +65,9 @@ export class TexPaperSystem {
             return {
                 path: entry.path,
                 filename,
-                content: entry.content
+                content: entry.content.content,
+                created: entry.content.created,
+                modified: entry.content.modified
             };
         });
         this.renderArticleList();
@@ -158,7 +160,8 @@ export class TexPaperSystem {
 
             let texContent = article.content;
             if (texContent === null) {
-                texContent = await this.fs.fetchFileContent(article.path);
+                const fileData = await this.fs.fetchFileContent(article.path);
+                texContent = fileData.content;
             }
 
             const htmlContent = await this.parseTexInWorker(texContent);

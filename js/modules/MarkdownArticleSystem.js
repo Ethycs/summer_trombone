@@ -66,8 +66,9 @@ export class MarkdownArticleSystem {
             return {
                 path: entry.path,
                 filename,
-                // In dev, content is pre-loaded. In prod, it's null.
-                content: entry.content 
+                content: entry.content.content,
+                created: entry.content.created,
+                modified: entry.content.modified
             };
         });
         this.renderArticleList();
@@ -136,7 +137,8 @@ export class MarkdownArticleSystem {
             let markdownContent = article.content;
             // If content is not pre-loaded (e.g., in production), fetch it.
             if (markdownContent === null) {
-                markdownContent = await this.fs.fetchFileContent(article.path);
+                const fileData = await this.fs.fetchFileContent(article.path);
+                markdownContent = fileData.content;
             }
             
             const { html, manifest } = await this.renderMarkdown(markdownContent);

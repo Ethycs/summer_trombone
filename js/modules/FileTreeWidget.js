@@ -81,7 +81,8 @@ export class FileTreeWidget {
                 name: filename,
                 type: 'file',
                 path: entry.path,
-                ...entry.content
+                created: entry.content.created,
+                modified: entry.content.modified
             };
         });
         
@@ -92,7 +93,8 @@ export class FileTreeWidget {
                 name: filename,
                 type: 'file',
                 path: entry.path,
-                ...entry.content
+                created: entry.content.created,
+                modified: entry.content.modified
             };
         });
         
@@ -103,7 +105,8 @@ export class FileTreeWidget {
                 name: filename,
                 type: 'file',
                 path: entry.path,
-                ...entry.content
+                created: entry.content.created,
+                modified: entry.content.modified
             };
         });
         
