@@ -9,7 +9,7 @@ const INLINE_CMD = {
   texttt : ['<code>',   '</code>']
 };
 
-class TexParser {
+export class TexParser {
     constructor() {
         this.mathStore = {};
         this.mathCounter = 0;
@@ -510,11 +510,4 @@ processTexText(text) {
         this.errors.push(errorInfo);
         console.error(`[TexParser.${method}] Error:`, errorInfo);
     }
-}
-
-// Export for module environments, or attach to self for worker environments
-if (typeof exports !== 'undefined') {
-    exports.TexParser = TexParser;
-} else {
-    self.TexParser = TexParser;
 }

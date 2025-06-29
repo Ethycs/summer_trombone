@@ -4,7 +4,7 @@
  */
 
 // Import the real parser
-importScripts('./TexParser.js');
+import { TexParser } from './TexParser.js';
 
 const parser = new TexParser();
 

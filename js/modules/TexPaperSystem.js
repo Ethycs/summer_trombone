@@ -178,7 +178,7 @@ export class TexPaperSystem {
 
     parseTexInWorker(texContent) {
         return new Promise((resolve, reject) => {
-            const worker = new Worker('./js/modules/TexParser.worker.js');
+            const worker = new Worker('./js/modules/TexParser.worker.js', { type: 'module' });
 
             worker.onmessage = (e) => {
                 resolve(e.data);

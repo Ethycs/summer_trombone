@@ -4,7 +4,6 @@
 
 import { FileSystemSync } from './FileSystemSync.js';
 import { TexParser } from './TexParser.js';
-import { marked } from 'https://cdn.jsdelivr.net/npm/marked/lib/marked.esm.js';
 
 export class ThemeSwitcher {
     constructor() {
@@ -19,8 +18,12 @@ export class ThemeSwitcher {
     }
 
     init() {
-        if (!this.toggleButton || !this.academicView || !this.hackerView) {
-            console.error('ThemeSwitcher: Missing required elements.');
+        if (!this.toggleButton) {
+            console.error('ThemeSwitcher FATAL: Could not find #mode-toggle button. Feature disabled.');
+            return;
+        }
+        if (!this.academicView || !this.hackerView) {
+            console.error('ThemeSwitcher FATAL: Missing view containers. Feature disabled.');
             return;
         }
 
@@ -82,7 +85,7 @@ export class ThemeSwitcher {
     async loadAcademicContent() {
         this.academicView.innerHTML = '<h1>Loading all content...</h1>';
         try {
-            const manifest = await this.fs.getManifest();
+            const manifest = this.fs.getAllFilesAsObject();
             const allFiles = Object.values(manifest.files);
 
             const contentPromises = allFiles
@@ -117,7 +120,13 @@ export class ThemeSwitcher {
             let contentHtml = '';
 
             if (file.path.endsWith('.md')) {
-                contentHtml = marked(rawContent);
+                try {
+                    const { marked } = await import('https://cdn.jsdelivr.net/npm/marked/lib/marked.esm.js');
+                    contentHtml = marked(rawContent);
+                } catch (e) {
+                    console.error('Failed to load markdown parser:', e);
+                    contentHtml = '<p>Error: Could not load Markdown parser. Please check your connection.</p>';
+                }
             } else if (file.path.endsWith('.tex')) {
                 const parsedTex = this.texParser.parse(rawContent);
                 contentHtml = `<h2>${parsedTex.title}</h2><div class="post-meta">${parsedTex.author} - ${parsedTex.date}</div><div>${parsedTex.body}</div>`;

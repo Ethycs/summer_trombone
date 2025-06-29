@@ -42,6 +42,20 @@ class FileSystemSync {
         return entries;
     }
 
+    getAllFilesAsObject() {
+        const files = {};
+        for (const [path, data] of this.filesystem.entries()) {
+            const filename = path.split('/').pop();
+            files[path] = {
+                path,
+                filename,
+                title: data.title || filename.replace(/\.(md|tex)$/, '').replace(/_/g, ' '),
+                ...data
+            };
+        }
+        return { files };
+    }
+
     // --- Internal Methods ---
 
     async scanFilesystem() {
