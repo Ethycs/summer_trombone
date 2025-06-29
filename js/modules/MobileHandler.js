@@ -47,9 +47,6 @@ export class MobileHandler {
         if (this.windowManager) {
             this.windowManager.setupMobileMode();
         }
-        
-        // Setup mobile-specific styles
-        this.applyMobileStyles();
     }
 
     disableMobileMode() {
@@ -59,27 +56,6 @@ export class MobileHandler {
         if (this.windowManager) {
             this.windowManager.init();
         }
-    }
-
-    applyMobileStyles() {
-        const desktop = document.querySelector('.desktop');
-        if (desktop) {
-            desktop.style.display = 'block';
-            desktop.style.padding = '0';
-        }
-        
-        // Ensure windows are in mobile layout
-        const windows = document.querySelectorAll('.window');
-        windows.forEach(window => {
-            window.style.position = 'relative';
-            window.style.width = '100%';
-            window.style.height = 'auto';
-            window.style.transform = 'none';
-            window.style.top = 'auto';
-            window.style.left = 'auto';
-            window.style.right = 'auto';
-            window.style.bottom = 'auto';
-        });
     }
 
     setupTaskbarNavigation() {

@@ -11,6 +11,16 @@
     <!-- Main CSS (imports all modules) -->
     <link rel="stylesheet" href="./css/main.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+
+    <!-- Prevent theme flash -->
+    <script>
+        (function() {
+            const savedMode = localStorage.getItem('themeMode');
+            if (savedMode === 'academic') {
+                document.documentElement.classList.add('academic-mode');
+            }
+        })();
+    </script>
 </head>
 <body>
     <div class="desktop">
@@ -60,7 +70,7 @@
                     <p><a href="#more">[Continue reading...]</a></p>
                 </div>
 
-                <div><span class="prompt">wintermute@straylight:~$</span> <span class="cursor"></span></div>
+                <div class="cli-footer"><span class="prompt">wintermute@straylight:~$</span> <span class="cursor"></span></div>
             </div>
         </div>
 

@@ -16,8 +16,9 @@
 @import url('./components/mode-toggle.css');
 @import url('./file-tree.css');
 
-/* 3. Responsive styles (last to override) */
+/* 3. Responsive and Static Layouts (last to override) */
 @import url('./responsive.css');
+@import url('./static-layout.css');
 
 /* Additional utility classes */
 .hidden {
