@@ -13,6 +13,7 @@
 @import url('./components/articles.css');
 @import url('./components/markdown.css');
 @import url('./components/taskbar.css');
+@import url('./components/mode-toggle.css');
 @import url('./file-tree.css');
 
 /* 3. Responsive styles (last to override) */

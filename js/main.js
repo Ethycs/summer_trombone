@@ -10,6 +10,7 @@ import { TerminalEffects } from './modules/TerminalEffects.js';
 import { MobileHandler } from './modules/MobileHandler.js';
 import { FileTreeWidget } from './modules/FileTreeWidget.js';
 import { TerminalContentLoader } from './modules/TerminalContentLoader.js';
+import { ThemeSwitcher } from './modules/ThemeSwitcher.js';
 
 class TerminalApp {
     constructor() {
@@ -45,6 +46,10 @@ class TerminalApp {
     }
 
     async initializeModules() {
+        // Initialize Theme Switcher first, as it may affect layout
+        this.modules.themeSwitcher = new ThemeSwitcher();
+        this.modules.themeSwitcher.init();
+
         // Initialize Window Manager first, in debug mode
         this.modules.windowManager = new WindowManager(false);
         this.modules.windowManager.init();

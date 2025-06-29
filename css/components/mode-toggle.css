@@ -1,0 +1,58 @@
+/* styles/components/mode-toggle.css */
+
+#mode-toggle {
+    position: fixed;
+    bottom: 40px; /* Increased from 20px to raise the button */
+    right: 20px;
+    z-index: 1001; /* Above taskbar, below active windows */
+    width: 50px;
+    height: 50px;
+    background-color: var(--terminal-bg-dim);
+    border: 1px solid var(--terminal-dim);
+    border-radius: 4px; /* Changed from 50% to make it square */
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+#mode-toggle:hover {
+    background-color: var(--terminal-bg);
+    border-color: var(--terminal-bright);
+}
+
+#mode-toggle .glider-art {
+    font-family: 'Courier New', monospace;
+    font-size: 8px;
+    line-height: 1;
+    color: var(--terminal-bright);
+    margin: 0;
+    padding: 0;
+    white-space: pre;
+}
+
+#mode-toggle .academic-icon {
+    font-size: 24px;
+    line-height: 1;
+}
+
+/* Hide one of the icons based on the current mode */
+body.academic-mode #mode-toggle .glider-art {
+    display: none;
+}
+
+body:not(.academic-mode) #mode-toggle .academic-icon {
+    display: none;
+}
+
+/* When in academic mode, adapt the button style */
+body.academic-mode #mode-toggle {
+    background-color: var(--academic-border);
+    border-color: var(--academic-text);
+}
+
+body.academic-mode #mode-toggle:hover {
+    background-color: #e7e1d0; /* Slightly darker solarized */
+}

@@ -1,0 +1,99 @@
+/* Academic Mode Stylesheet */
+/* Overrides the default "hacker" theme for a clean, readable view. */
+
+:root {
+    --academic-bg: #fdf6e3; /* Solarized Light Background */
+    --academic-text: #657b83; /* Solarized Light Text */
+    --academic-header: #268bd2; /* Solarized Blue */
+    --academic-link: #cb4b16; /* Solarized Orange */
+    --academic-border: #eee8d5; /* Solarized Light Border */
+}
+
+body.academic-mode {
+    background-color: var(--academic-bg);
+    color: var(--academic-text);
+    font-family: 'Georgia', serif;
+    line-height: 1.6;
+    font-size: 18px;
+    padding: 2rem;
+    overflow-y: scroll; /* Always show scrollbar */
+}
+
+/* Hide all the hacker-mode UI */
+body.academic-mode .desktop,
+body.academic-mode .taskbar,
+body.academic-mode .window {
+    display: none !important;
+}
+
+/* Show the academic content container */
+body.academic-mode #academic-view {
+    display: block;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+/* Style the academic content */
+#academic-view h1,
+#academic-view h2,
+#academic-view h3 {
+    color: var(--academic-header);
+    font-family: 'Helvetica Neue', sans-serif;
+    margin-top: 2em;
+    margin-bottom: 0.5em;
+}
+
+#academic-view h1 {
+    text-align: center;
+    border-bottom: 2px solid var(--academic-border);
+    padding-bottom: 0.5em;
+    margin-bottom: 1em;
+}
+
+#academic-view a {
+    color: var(--academic-link);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--academic-link);
+}
+
+#academic-view a:hover {
+    border-bottom-style: solid;
+}
+
+#academic-view article {
+    margin-bottom: 4rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--academic-border);
+}
+
+#academic-view .post-meta {
+    font-size: 0.8em;
+    color: #93a1a1; /* Solarized Light secondary text */
+    margin-bottom: 1em;
+}
+
+#academic-view code {
+    background-color: var(--academic-border);
+    padding: 0.2em 0.4em;
+    border-radius: 3px;
+    font-family: 'Courier New', monospace;
+}
+
+#academic-view pre {
+    background-color: var(--academic-border);
+    padding: 1em;
+    border-radius: 4px;
+    overflow-x: auto;
+}
+
+#academic-view blockquote {
+    border-left: 4px solid var(--academic-border);
+    padding-left: 1em;
+    margin-left: 0;
+    font-style: italic;
+}
+
+/* Keep the mode toggle visible */
+body.academic-mode #mode-toggle {
+    display: flex;
+}
