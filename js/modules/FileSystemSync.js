@@ -57,14 +57,12 @@ class FileSystemSync {
         // 1. Fetch metadata from filesystem.json
         let metadata = {};
         try {
-            const response = await fetch('/filesystem.json?t=' + new Date().getTime());
-            if (response.ok) {
-                const manifest = await response.json();
-                metadata = Object.values(manifest.files).reduce((acc, file) => {
-                    acc[file.path] = file;
-                    return acc;
-                }, {});
-            }
+            const manifestJson = await import('/system/filesystem.json?raw');
+            const manifest = JSON.parse(manifestJson.default);
+            metadata = Object.values(manifest.files).reduce((acc, file) => {
+                acc[file.path] = file;
+                return acc;
+            }, {});
         } catch (error) {
             console.warn('[FileSystemSync] Could not load metadata from filesystem.json', error);
         }

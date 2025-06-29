@@ -70,45 +70,22 @@ export class FileTreeWidget {
         };
         
         // Get all files from FileSystemSync
-        const posts = this.fs.list('/blog/posts/');
-        const papers = this.fs.list('/blog/papers/');
-        const drafts = this.fs.list('/blog/drafts/');
+        const allFiles = this.fs.list('/blog/');
         
-        // Add posts
-        posts.forEach(entry => {
+        for (const entry of allFiles) {
             const filename = entry.path.split('/').pop();
-            tree.children.posts.children[filename] = {
-                name: filename,
-                type: 'file',
-                path: entry.path,
-                created: entry.content.created,
-                modified: entry.content.modified
-            };
-        });
-        
-        // Add papers
-        papers.forEach(entry => {
-            const filename = entry.path.split('/').pop();
-            tree.children.papers.children[filename] = {
-                name: filename,
-                type: 'file',
-                path: entry.path,
-                created: entry.content.created,
-                modified: entry.content.modified
-            };
-        });
-        
-        // Add drafts
-        drafts.forEach(entry => {
-            const filename = entry.path.split('/').pop();
-            tree.children.drafts.children[filename] = {
-                name: filename,
-                type: 'file',
-                path: entry.path,
-                created: entry.content.created,
-                modified: entry.content.modified
-            };
-        });
+            const dir = entry.path.split('/').slice(-2, -1)[0];
+            
+            if (tree.children[dir]) {
+                tree.children[dir].children[filename] = {
+                    name: filename,
+                    type: 'file',
+                    path: entry.path,
+                    created: entry.content.created,
+                    modified: entry.content.modified
+                };
+            }
+        }
         
         return tree;
     }
