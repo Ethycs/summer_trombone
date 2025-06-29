@@ -360,15 +360,15 @@ class TerminalApp {
         const container = document.querySelector('.main-window .window-content');
         if (!container) return;
 
-        const manifest = await this.modules.fileTreeWidget.fs.get();
+        const manifest = this.modules.fileTreeWidget.fs.filesystem;
         let html = '<div class="ascii-header">' + container.querySelector('.ascii-header').innerHTML + '</div>';
 
-        for (const file of Object.values(manifest)) {
-            if (file.summary) {
+        for (const file of manifest.values()) {
+            if (file.summary && file.summary.text) {
                 html += `
                     <div class="post-content">
                         <div class="post-title">${file.path.split('/').pop()}</div>
-                        <p class="terminal-text">${file.summary}</p>
+                        <p class="terminal-text">${file.summary.text}</p>
                         <p><a href="#" data-path="${file.path}">[Continue reading...]</a></p>
                     </div>
                 `;

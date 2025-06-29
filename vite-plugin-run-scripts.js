@@ -5,19 +5,29 @@ export function runScriptsPlugin() {
         name: 'run-scripts',
         configureServer(server) {
             if (process.argv.includes('--run-scripts')) {
-                console.log('Running scripts...');
-                const script = exec('node .github/scripts/generate-summaries.mjs');
+                const runScript = () => {
+                    console.log('Running scripts...');
+                    const script = exec('node .github/scripts/generate-summaries.mjs');
 
-                script.stdout.on('data', (data) => {
-                    console.log(`[scripts] ${data}`);
-                });
+                    script.stdout.on('data', (data) => {
+                        console.log(`[scripts] ${data}`);
+                    });
 
-                script.stderr.on('data', (data) => {
-                    console.error(`[scripts] ${data}`);
-                });
+                    script.stderr.on('data', (data) => {
+                        console.error(`[scripts] ${data}`);
+                    });
 
-                script.on('close', (code) => {
-                    console.log(`[scripts] exited with code ${code}`);
+                    script.on('close', (code) => {
+                        console.log(`[scripts] exited with code ${code}`);
+                    });
+                };
+
+                runScript();
+
+                server.watcher.on('change', (path) => {
+                    if (path.includes('/blog/')) {
+                        runScript();
+                    }
                 });
             }
         },

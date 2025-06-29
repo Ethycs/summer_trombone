@@ -16,14 +16,23 @@ async function generateSummaries() {
     console.log('Generating summaries for all articles...');
     for (const file of Object.values(manifest.files)) {
         if (file.type === 'Markdown Post' || file.type === 'TeX Article') {
-            console.log(`  - ${file.path}`);
             const filePath = path.join(root, file.path);
-            const content = await fs.readFile(filePath, 'utf-8');
-            const summary = await summarizer(content, {
-                max_length: 50,
-                min_length: 20,
-            });
-            file.summary = summary[0].summary_text;
+            const stats = await fs.stat(filePath);
+            const lastModified = new Date(stats.mtime);
+            const summaryModified = file.summary ? new Date(file.summary.modified) : new Date(0);
+
+            if (!file.summary || lastModified > summaryModified) {
+                console.log(`  - ${file.path}`);
+                const content = await fs.readFile(filePath, 'utf-8');
+                const summary = await summarizer(content, {
+                    max_length: 50,
+                    min_length: 20,
+                });
+                file.summary = {
+                    text: summary[0].summary_text,
+                    modified: new Date().toISOString()
+                };
+            }
         }
     }
 
