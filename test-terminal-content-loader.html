@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terminal Content Loader Test</title>
+    <style>
+        body {
+            background-color: #0c0c0c;
+            color: #00ff41;
+            font-family: 'Courier New', monospace;
+            margin: 20px;
+        }
+        
+        #test-container {
+            border: 1px solid #00ff41;
+            padding: 20px;
+            min-height: 400px;
+            background-color: #000;
+        }
+        
+        .terminal-post {
+            margin-bottom: 30px;
+            padding: 10px;
+            border-left: 2px solid #00ff41;
+        }
+        
+        .terminal-post.hover {
+            background-color: rgba(0, 255, 65, 0.1);
+        }
+        
+        .post-header {
+            margin-bottom: 10px;
+        }
+        
+        .post-type {
+            color: #ff6666;
+            font-weight: bold;
+        }
+        
+        .post-title {
+            font-size: 1.2em;
+            margin: 5px 0;
+        }
+        
+        .post-date {
+            color: #888;
+            font-size: 0.9em;
+        }
+        
+        .post-summary {
+            line-height: 1.5;
+        }
+        
+        .continue-reading {
+            color: #00ff41;
+            text-decoration: none;
+        }
+        
+        .continue-reading:hover {
+            text-decoration: underline;
+        }
+        
+        .terminal-pagination {
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .terminal-pagination button {
+            background-color: transparent;
+            color: #00ff41;
+            border: 1px solid #00ff41;
+            padding: 5px 15px;
+            margin: 0 10px;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        
+        .terminal-pagination button:disabled {
+            color: #666;
+            border-color: #666;
+            cursor: not-allowed;
+        }
+        
+        .terminal-pagination button:hover:not(:disabled) {
+            background-color: rgba(0, 255, 65, 0.2);
+        }
+        
+        .terminal-loading,
+        .terminal-empty,
+        .terminal-error {
+            text-align: center;
+            padding: 50px;
+        }
+        
+        .terminal-notification {
+            background-color: rgba(0, 255, 65, 0.2);
+            border: 1px solid #00ff41;
+            padding: 10px;
+            margin-bottom: 10px;
+            animation: fadeOut 3s forwards;
+        }
+        
+        @keyframes fadeOut {
+            0% { opacity: 1; }
+            70% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <h1>Terminal Content Loader Test</h1>
+    <div id="test-container"></div>
+    
+    <script type="module">
+        import { TerminalContentLoader } from './js/modules/TerminalContentLoader.js';
+        
+        // Initialize the loader
+        const container = document.getElementById('test-container');
+        const loader = new TerminalContentLoader(container);
+        
+        // Log file open events
+        container.addEventListener('file-open', (event) => {
+            console.log('File opened:', event.detail.path);
+            alert(`Opening file: ${event.detail.path}`);
+        });
+    </script>
+</body>
+</html>

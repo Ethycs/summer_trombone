@@ -9,6 +9,7 @@ import { WindowManager } from './modules/WindowManager.js';
 import { TerminalEffects } from './modules/TerminalEffects.js';
 import { MobileHandler } from './modules/MobileHandler.js';
 import { FileTreeWidget } from './modules/FileTreeWidget.js';
+import { TerminalContentLoader } from './modules/TerminalContentLoader.js';
 
 class TerminalApp {
     constructor() {
@@ -84,6 +85,7 @@ class TerminalApp {
         if (fileTreeContainer) {
             try {
                 this.modules.fileTreeWidget = new FileTreeWidget(fileTreeContainer);
+                await this.modules.fileTreeWidget.render();
                 console.log('File Tree Widget initialized');
                 
                 // Handle file open events from the tree
@@ -95,8 +97,23 @@ class TerminalApp {
             }
         }
 
+        // Initialize Terminal Content Loader for main window
+        const mainWindowContent = document.querySelector('.main-window .window-content');
+        if (mainWindowContent) {
+            try {
+                this.modules.terminalContentLoader = new TerminalContentLoader(mainWindowContent);
+                console.log('Terminal Content Loader initialized');
+                
+                // Handle file open events from terminal content
+                mainWindowContent.addEventListener('file-open', (event) => {
+                    this.handleFileOpen(event.detail.path);
+                });
+            } catch (error) {
+                console.error('Failed to initialize TerminalContentLoader:', error);
+            }
+        }
+
         console.log('All modules initialized');
-        this.renderTerminalContent();
     }
 
     setupGlobalEvents() {
@@ -356,35 +373,6 @@ class TerminalApp {
         });
     }
 
-    async renderTerminalContent() {
-        const container = document.querySelector('.main-window .window-content');
-        if (!container) return;
-
-        const manifest = this.modules.fileTreeWidget.fs.filesystem;
-        let html = '<div class="ascii-header">' + container.querySelector('.ascii-header').innerHTML + '</div>';
-
-        for (const file of manifest.values()) {
-            if (file.summary && file.summary.text) {
-                html += `
-                    <div class="post-content">
-                        <div class="post-title">${file.path.split('/').pop()}</div>
-                        <p class="terminal-text">${file.summary.text}</p>
-                        <p><a href="#" data-path="${file.path}">[Continue reading...]</a></p>
-                    </div>
-                `;
-            }
-        }
-
-        html += `<div><span class="prompt">wintermute@straylight:~$</span> <span class="cursor"></span></div>`;
-        container.innerHTML = html;
-
-        container.addEventListener('click', (e) => {
-            if (e.target.tagName === 'A' && e.target.dataset.path) {
-                e.preventDefault();
-                this.handleFileOpen(e.target.dataset.path);
-            }
-        });
-    }
 
     // Public API methods
     getModule(name) {
@@ -403,7 +391,7 @@ class TerminalApp {
     destroy() {
         // Cleanup all modules
         Object.values(this.modules).forEach(module => {
-            if (module.destroy && typeof module.destroy === 'function') {
+            if (module && module.destroy && typeof module.destroy === 'function') {
                 module.destroy();
             }
         });
