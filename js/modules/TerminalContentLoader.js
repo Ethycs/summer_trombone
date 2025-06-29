@@ -40,18 +40,43 @@ export class TerminalContentLoader {
     
     showLoading() {
         this.container.classList.add('terminal-content-loader');
+        
+        // Preserve ASCII header and cursor if they exist
+        const asciiHeader = this.container.querySelector('.ascii-header');
+        const cursorElement = Array.from(this.container.children).find(child => 
+            child.innerHTML && child.innerHTML.includes('wintermute@straylight:~$')
+        );
+        
+        const asciiHeaderHtml = asciiHeader ? asciiHeader.outerHTML : '';
+        const cursorHtml = cursorElement ? cursorElement.outerHTML : 
+            '<div><span class="prompt">wintermute@straylight:~$</span> <span class="cursor"></span></div>';
+        
         this.container.innerHTML = `
+            ${asciiHeaderHtml}
             <div class="terminal-loading">
                 <p class="loading-message">Loading posts...</p>
             </div>
+            ${cursorHtml}
         `;
     }
     
     showError(message) {
+        // Preserve ASCII header and cursor if they exist
+        const asciiHeader = this.container.querySelector('.ascii-header');
+        const cursorElement = Array.from(this.container.children).find(child => 
+            child.innerHTML && child.innerHTML.includes('wintermute@straylight:~$')
+        );
+        
+        const asciiHeaderHtml = asciiHeader ? asciiHeader.outerHTML : '';
+        const cursorHtml = cursorElement ? cursorElement.outerHTML : 
+            '<div><span class="prompt">wintermute@straylight:~$</span> <span class="cursor"></span></div>';
+        
         this.container.innerHTML = `
+            ${asciiHeaderHtml}
             <div class="terminal-error">
                 <p class="error-message">[ERROR] ${message}</p>
             </div>
+            ${cursorHtml}
         `;
     }
     
@@ -67,7 +92,7 @@ export class TerminalContentLoader {
                     return acc;
                 }, {});
             } else {
-                const response = await fetch('/filesystem.json?t=' + new Date().getTime());
+                const response = await fetch('/system/filesystem.json?t=' + new Date().getTime());
                 const manifest = await response.json();
                 this.metadata = Object.values(manifest.files).reduce((acc, file) => {
                     acc[file.path] = file;
@@ -81,34 +106,26 @@ export class TerminalContentLoader {
     }
     
     async loadContent() {
-        // Get all posts and papers from filesystem
-        const allFiles = this.fs.list('/blog/');
-        
-        // Filter and map files with metadata
-        this.posts = allFiles
-            .filter(entry => {
-                const path = entry.path;
+        // Use metadata directly from filesystem.json
+        this.posts = Object.entries(this.metadata)
+            .filter(([path, file]) => {
                 return path.includes('/posts/') || path.includes('/papers/');
             })
-            .map(entry => {
-                const { path, content } = entry;
+            .map(([path, file]) => {
                 const filename = path.split('/').pop();
                 const type = path.includes('/posts/') ? 'post' : 'paper';
                 const ext = filename.split('.').pop();
-                
-                // Get metadata from filesystem.json if available
-                const metadata = this.metadata[path] || {};
                 
                 return {
                     path,
                     filename,
                     type,
                     ext,
-                    title: metadata?.title || this.extractTitleFromFilename(filename),
-                    date: metadata?.modified || content.modified,
-                    created: metadata?.created || content.created,
-                    summary: metadata?.summary || this.generateDefaultSummary(type, filename),
-                    content: content.content
+                    title: file?.title || this.extractTitleFromFilename(filename),
+                    date: file?.modified,
+                    created: file?.created,
+                    summary: file?.summary || this.generateDefaultSummary(type, filename),
+                    content: null // Content will be loaded on demand
                 };
             })
             .sort((a, b) => {
@@ -138,8 +155,19 @@ export class TerminalContentLoader {
     render() {
         this.container.classList.add('terminal-content-loader');
         
+        // Preserve ASCII header and cursor if they exist
+        const asciiHeader = this.container.querySelector('.ascii-header');
+        const cursorElement = Array.from(this.container.children).find(child => 
+            child.innerHTML && child.innerHTML.includes('wintermute@straylight:~$')
+        );
+        
+        // Save their HTML
+        const asciiHeaderHtml = asciiHeader ? asciiHeader.outerHTML : '';
+        const cursorHtml = cursorElement ? cursorElement.outerHTML : 
+            '<div><span class="prompt">wintermute@straylight:~$</span> <span class="cursor"></span></div>';
+        
         if (this.posts.length === 0) {
-            this.container.innerHTML = this.renderEmptyState();
+            this.container.innerHTML = asciiHeaderHtml + this.renderEmptyState() + cursorHtml;
             return;
         }
         
@@ -148,10 +176,12 @@ export class TerminalContentLoader {
         const pagePosts = this.posts.slice(startIdx, endIdx);
         
         this.container.innerHTML = `
+            ${asciiHeaderHtml}
             <div class="terminal-posts">
                 ${pagePosts.map(post => this.renderPost(post)).join('')}
             </div>
             ${this.renderPagination()}
+            ${cursorHtml}
         `;
     }
     
