@@ -54,26 +54,41 @@ class FileSystemSync {
     }
 
     async scanWithViteGlob() {
+        // 1. Fetch metadata from filesystem.json
+        let metadata = {};
+        try {
+            const response = await fetch('/filesystem.json?t=' + new Date().getTime());
+            if (response.ok) {
+                const manifest = await response.json();
+                metadata = Object.values(manifest.files).reduce((acc, file) => {
+                    acc[file.path] = file;
+                    return acc;
+                }, {});
+            }
+        } catch (error) {
+            console.warn('[FileSystemSync] Could not load metadata from filesystem.json', error);
+        }
+
+        // 2. Scan files with Vite glob
         const files = {
             posts: import.meta.glob('/blog/posts/**/*.md', { eager: true, query: '?raw', import: 'default' }),
             papers: import.meta.glob('/blog/papers/**/*.tex', { eager: true, query: '?raw', import: 'default' }),
             drafts: import.meta.glob('/blog/drafts/**/*.{md,tex}', { eager: true, query: '?raw', import: 'default' })
         };
 
-        console.log('[FileSystemSync] Scanning with Vite glob patterns');
-        console.log('[FileSystemSync] Posts found:', Object.keys(files.posts));
-        console.log('[FileSystemSync] Papers found:', Object.keys(files.papers));
-        console.log('[FileSystemSync] Drafts found:', Object.keys(files.drafts));
-
         this.filesystem.clear();
         Object.values(files).forEach(items => {
             Object.entries(items).forEach(([path, content]) => {
-                this.addFile(path, content);
+                const meta = metadata[path] || {};
+                this.addFile(path, {
+                    content,
+                    created: meta.created || null,
+                    modified: meta.modified || null
+                });
             });
         });
         
         console.log('[FileSystemSync] Total files loaded:', this.filesystem.size);
-        console.log('[FileSystemSync] Files in filesystem:', Array.from(this.filesystem.keys()));
     }
 
     async scanWithManifest() {
@@ -83,9 +98,12 @@ class FileSystemSync {
             const manifest = await response.json();
 
             this.filesystem.clear();
-            for (const path of manifest.files) {
-                // We don't have content initially in production, just paths
-                this.addFile(path, null);
+            for (const file of Object.values(manifest.files)) {
+                this.addFile(file.path, {
+                    content: null,
+                    created: file.created,
+                    modified: file.modified
+                });
             }
         } catch (error) {
             console.error('[FileSystemSync] Error loading production manifest:', error);
@@ -133,8 +151,8 @@ class FileSystemSync {
         }
     }
 
-    addFile(path, content) {
-        this.filesystem.set(path, content);
+    addFile(path, data) {
+        this.filesystem.set(path, data);
     }
 
     removeFile(path) {
@@ -144,7 +162,7 @@ class FileSystemSync {
     async fetchAndAddFile(path) {
         try {
             const content = await this.fetchFileContent(path);
-            this.addFile(path, content);
+            this.addFile(path, { content, created: new Date().toISOString(), modified: new Date().toISOString() });
             this.notifyWatchers('file-added', path);
         } catch (error) {
             console.error(`[FileSystemSync] Failed to fetch and add file: ${path}`, error);
@@ -154,7 +172,8 @@ class FileSystemSync {
     async fetchAndUpdateFile(path) {
         try {
             const content = await this.fetchFileContent(path);
-            this.addFile(path, content);
+            const existing = this.filesystem.get(path) || {};
+            this.addFile(path, { ...existing, content, modified: new Date().toISOString() });
             this.notifyWatchers('file-change', path);
         } catch (error) {
             console.error(`[FileSystemSync] Failed to fetch and update file: ${path}`, error);

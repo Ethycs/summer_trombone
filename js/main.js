@@ -279,7 +279,9 @@ class TerminalApp {
         
         // Trigger glitch effect
         if (this.modules.terminalEffects) {
-            this.modules.terminalEffects.glitch(200, 0.3);
+            // this.modules.terminalEffects.glitch(200, 0.3);
+            // This is a placeholder for the glitch effect
+            console.log('Triggering glitch effect for file:', path);
         }
     }
 

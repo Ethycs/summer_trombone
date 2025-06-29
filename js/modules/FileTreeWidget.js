@@ -34,6 +34,10 @@ export class FileTreeWidget {
         this.container.innerHTML = `
             <div class="tree-header">
                 <span class="current-path">${this.currentPath}</span>
+                <div class="tree-header-columns">
+                    <span class="tree-date">Created</span>
+                    <span class="tree-date">Modified</span>
+                </div>
             </div>
             <div class="tree-content">
                 ${this.renderTree(tree, '/blog')}
@@ -77,7 +81,7 @@ export class FileTreeWidget {
                 name: filename,
                 type: 'file',
                 path: entry.path,
-                content: entry.content
+                ...entry.content
             };
         });
         
@@ -88,7 +92,7 @@ export class FileTreeWidget {
                 name: filename,
                 type: 'file',
                 path: entry.path,
-                content: entry.content
+                ...entry.content
             };
         });
         
@@ -99,7 +103,7 @@ export class FileTreeWidget {
                 name: filename,
                 type: 'file',
                 path: entry.path,
-                content: entry.content
+                ...entry.content
             };
         });
         
@@ -125,6 +129,8 @@ export class FileTreeWidget {
                     <span class="tree-arrow">${hasChildren ? arrow : ' '}</span>
                     <span class="tree-icon">[DIR]</span>
                     <span class="tree-name">${node.name}/</span>
+                    <span class="tree-date"></span>
+                    <span class="tree-date"></span>
                 </div>
             `;
             
@@ -142,6 +148,9 @@ export class FileTreeWidget {
                 'txt': '[TXT]'
             }[ext] || '[FILE]';
             
+            const created = node.created ? new Date(node.created).toLocaleDateString() : 'N/A';
+            const modified = node.modified ? new Date(node.modified).toLocaleDateString() : 'N/A';
+
             html += `
                 <div class="tree-node file" 
                      data-path="${path}" 
@@ -150,6 +159,8 @@ export class FileTreeWidget {
                     <span class="tree-arrow"> </span>
                     <span class="tree-icon">${icon}</span>
                     <span class="tree-name">${node.name}</span>
+                    <span class="tree-date">${created}</span>
+                    <span class="tree-date">${modified}</span>
                 </div>
             `;
         }
@@ -211,22 +222,23 @@ export class FileTreeWidget {
         }
     }
     
-    handleFilesystemChange(event, data) {
+    async handleFilesystemChange(event, data) {
         console.log(`[FileTreeWidget] Filesystem change: ${event}`, data);
         
         // Refresh tree
-        this.render();
+        await this.render();
 
         // Show notification
         this.showNotification(event, data);
     }
     
     showNotification(event, data) {
+        if (event === 'scan-complete') return; // Don't show notification for initial scan
+
         const notifications = {
             'file-added': (path) => `[+] New file: ${path.split('/').pop()}`,
             'file-removed': (path) => `[-] Removed: ${path.split('/').pop()}`,
-            'file-change': (path) => `[*] Modified: ${path.split('/').pop()}`,
-            'scan-complete': () => '[>] Files refreshed'
+            'file-change': (path) => `[*] Modified: ${path.split('/').pop()}`
         };
         
         if (notifications[event]) {
