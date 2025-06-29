@@ -96,6 +96,7 @@ class TerminalApp {
         }
 
         console.log('All modules initialized');
+        this.renderTerminalContent();
     }
 
     setupGlobalEvents() {
@@ -351,6 +352,36 @@ class TerminalApp {
         errorDiv.addEventListener('click', () => {
             if (errorDiv.parentNode) {
                 errorDiv.parentNode.removeChild(errorDiv);
+            }
+        });
+    }
+
+    async renderTerminalContent() {
+        const container = document.querySelector('.main-window .window-content');
+        if (!container) return;
+
+        const manifest = await this.modules.fileTreeWidget.fs.get();
+        let html = '<div class="ascii-header">' + container.querySelector('.ascii-header').innerHTML + '</div>';
+
+        for (const file of Object.values(manifest)) {
+            if (file.summary) {
+                html += `
+                    <div class="post-content">
+                        <div class="post-title">${file.path.split('/').pop()}</div>
+                        <p class="terminal-text">${file.summary}</p>
+                        <p><a href="#" data-path="${file.path}">[Continue reading...]</a></p>
+                    </div>
+                `;
+            }
+        }
+
+        html += `<div><span class="prompt">wintermute@straylight:~$</span> <span class="cursor"></span></div>`;
+        container.innerHTML = html;
+
+        container.addEventListener('click', (e) => {
+            if (e.target.tagName === 'A' && e.target.dataset.path) {
+                e.preventDefault();
+                this.handleFileOpen(e.target.dataset.path);
             }
         });
     }

@@ -1,8 +1,9 @@
 import { defineConfig } from 'vite';
 import { blogSyncPlugin } from './vite-plugin-blog-sync.js';
+import { runScriptsPlugin } from './vite-plugin-run-scripts.js';
 
 export default defineConfig({
-  plugins: [blogSyncPlugin()],
+  plugins: [blogSyncPlugin(), runScriptsPlugin()],
   server: {
     headers: {
       'Content-Security-Policy': "script-src 'self' 'unsafe-inline'; worker-src 'self';"
