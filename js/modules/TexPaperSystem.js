@@ -170,8 +170,11 @@ export class TexPaperSystem {
                 const directArticle = papers.find(entry => entry.path.split('/').pop() === filename);
                 
                 if (directArticle) {
-                    const fileData = await this.fs.fetchFileContent(directArticle.path);
-                    const htmlContent = await this.parseTexInWorker(fileData);
+                    let texContent = directArticle.content.content;
+                    if (texContent === null) {
+                        texContent = await this.fs.fetchFileContent(directArticle.path);
+                    }
+                    const htmlContent = await this.parseTexInWorker(texContent);
                     this.articleContentElement.innerHTML = htmlContent;
                     this.renderMath();
                     

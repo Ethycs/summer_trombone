@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Article Reader - Summer Trombone</title>
+    
+    <!-- KaTeX CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    
+    <!-- Main CSS (imports all modules) -->
+    <link rel="stylesheet" href="./css/main.css">
+    
+    <!-- Force academic mode -->
+    <script>
+        document.documentElement.classList.add('academic-mode');
+        document.addEventListener('DOMContentLoaded', () => {
+            document.body.classList.add('academic-mode');
+        });
+    </script>
+    
+    <style>
+        /* Reader-specific styles */
+        .reader-container {
+            min-height: 100vh;
+            background: var(--academic-bg, #fdf6e3);
+            color: var(--academic-text, #657b83);
+        }
+        
+        .reader-header {
+            background: var(--academic-border, #eee8d5);
+            border-bottom: 1px solid var(--academic-text);
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+        
+        .reader-back-button {
+            background: var(--academic-bg);
+            border: 1px solid var(--academic-text);
+            color: var(--academic-text);
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .reader-back-button:hover {
+            background: var(--academic-text);
+            color: var(--academic-bg);
+        }
+        
+        .reader-title {
+            flex: 1;
+            font-size: 1.5rem;
+            color: var(--academic-header, #268bd2);
+            margin: 0;
+        }
+        
+        .reader-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .reader-controls button {
+            background: var(--academic-bg);
+            border: 1px solid var(--academic-text);
+            color: var(--academic-text);
+            padding: 0.25rem 0.5rem;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+        
+        .reader-controls button:hover {
+            background: var(--academic-text);
+            color: var(--academic-bg);
+        }
+        
+        .reader-content {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        
+        .reader-loading {
+            text-align: center;
+            padding: 4rem;
+            color: var(--academic-text);
+        }
+        
+        .reader-error {
+            text-align: center;
+            padding: 4rem;
+            color: #dc322f;
+        }
+    </style>
+</head>
+<body>
+    <div class="reader-container">
+        <header class="reader-header">
+            <a href="/" class="reader-back-button">← Back to Academic Mode</a>
+            <h1 class="reader-title" id="article-title">Loading...</h1>
+            <div class="reader-controls">
+                <button class="btn-font-decrease" title="Decrease font size">A-</button>
+                <button class="btn-font-increase" title="Increase font size">A+</button>
+                <button class="btn-print" title="Print article">🖨️</button>
+            </div>
+        </header>
+        
+        <main class="reader-content" id="reader-content">
+            <div class="reader-loading">Loading article...</div>
+        </main>
+    </div>
+    
+    <!-- KaTeX JavaScript -->
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    
+    <!-- Reader Application Script -->
+    <script type="module" src="./js/reader.js"></script>
+</body>
+</html>

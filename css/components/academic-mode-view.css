@@ -48,11 +48,11 @@
     overflow: hidden;
 }
 
-/* Top Section - Split View */
-.academic-top-section {
-    flex: 0 0 40%;
+/* Split View - Now takes full height */
+.academic-split-view {
+    flex: 1;
     display: flex;
-    border-bottom: 2px solid var(--academic-border);
+    overflow: hidden;
 }
 
 .academic-file-browser,
@@ -136,77 +136,19 @@
     line-height: 1.5;
 }
 
-/* Bottom Section - Article Viewer */
-.academic-bottom-section {
-    flex: 1;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
+/* Article links */
+.academic-posts article {
+    text-decoration: none;
+    color: inherit;
 }
 
-.academic-article-viewer {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
-
-.article-viewer-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem;
-    background: var(--academic-border);
-    border-bottom: 1px solid var(--academic-text);
-}
-
-.article-title {
-    font-size: 1.2rem;
-    color: var(--academic-header);
-    font-weight: bold;
-}
-
-.article-controls {
-    display: flex;
-    gap: 0.5rem;
-}
-
-.article-controls button {
-    background: var(--academic-bg);
-    border: 1px solid var(--academic-text);
-    color: var(--academic-text);
-    padding: 0.25rem 0.5rem;
-    cursor: pointer;
-    font-size: 0.9rem;
-    transition: all 0.2s;
-}
-
-.article-controls button:hover {
-    background: var(--academic-text);
-    color: var(--academic-bg);
-}
-
-#academic-article-content {
-    flex: 1;
-    overflow-y: auto;
-    padding: 2rem;
-    font-size: 16px;
-    line-height: 1.6;
-    max-width: 800px;
-    margin: 0 auto;
-    width: 100%;
-}
-
-.article-placeholder {
-    text-align: center;
-    color: var(--academic-text);
-    padding: 4rem 2rem;
-}
-
-.article-placeholder .hint {
-    font-size: 0.9rem;
+.academic-posts .continue-reading {
     color: var(--academic-link);
-    margin-top: 1rem;
+    text-decoration: underline;
+}
+
+.academic-posts .continue-reading:hover {
+    color: var(--academic-header);
 }
 
 /* Loading and error states */
@@ -243,13 +185,17 @@
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-    .academic-top-section {
+    .academic-split-view {
         flex-direction: column;
-        flex: 0 0 50%;
     }
     
     .academic-file-browser {
         border-right: none;
         border-bottom: 1px solid var(--academic-border);
+        flex: 0 0 50%;
+    }
+    
+    .academic-content-list {
+        flex: 1;
     }
 }

@@ -139,9 +139,22 @@ export class MarkdownArticleSystem {
                 this.refreshArticleList();
             }
             
-            const article = this.articles.find(a => a.filename === filename);
+            let article = this.articles.find(a => a.filename === filename);
             if (!article) {
-                throw new Error(`Article "${filename}" not found.`);
+                // Try to load directly from filesystem as a fallback
+                console.log('[MarkdownArticleSystem] Article not in cache, trying direct load...');
+                const posts = this.fs.list('/blog/posts/');
+                const directArticle = posts.find(entry => entry.path.split('/').pop() === filename);
+                
+                if (directArticle) {
+                    article = {
+                        path: directArticle.path,
+                        filename: filename,
+                        content: directArticle.content.content
+                    };
+                } else {
+                    throw new Error(`Article "${filename}" not found.`);
+                }
             }
 
             let markdownContent = article.content;

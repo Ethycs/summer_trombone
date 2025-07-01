@@ -30,11 +30,20 @@ class TerminalApp {
                 });
             }
 
+            // Check URL parameters for mode
+            const params = new URLSearchParams(window.location.search);
+            const mode = params.get('mode');
+
             // Initialize modules in order
             await this.initializeModules();
             
             // Setup global event listeners
             this.setupGlobalEvents();
+            
+            // If mode=academic is in URL, switch to academic mode after initialization
+            if (mode === 'academic' && this.modules.themeSwitcher) {
+                this.modules.themeSwitcher.setMode('academic');
+            }
             
             // Mark as initialized
             this.isInitialized = true;
