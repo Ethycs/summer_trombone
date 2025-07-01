@@ -78,7 +78,34 @@ export class AcademicModeView {
     }
     
     createAcademicContentRenderer() {
+        const self = this;
         const originalRender = this.contentLoader.render.bind(this.contentLoader);
+        
+        // Add renderAcademicPost method to contentLoader
+        this.contentLoader.renderAcademicPost = function(post) {
+            const formattedDate = this.formatDate(post.date);
+            const typeLabel = post.type === 'paper' ? '[PAPER]' : '[POST]';
+            const typeClass = post.type === 'paper' ? 'paper' : 'post';
+            
+            return `
+                <article class="terminal-post academic-post ${typeClass}" data-path="${post.path}">
+                    <header class="post-header">
+                        <span class="post-type">${typeLabel}</span>
+                        <h2 class="post-title">${post.title}</h2>
+                        <time class="post-date" datetime="${post.date}">${formattedDate}</time>
+                    </header>
+                    <div class="post-summary">
+                        <p>${post.summary}</p>
+                    </div>
+                    <footer class="post-footer">
+                        <a href="#" class="continue-reading" data-path="${post.path}">
+                            Continue reading →
+                        </a>
+                    </footer>
+                </article>
+            `;
+        };
+        
         return function() {
             this.container.classList.add('academic-content-list');
             
