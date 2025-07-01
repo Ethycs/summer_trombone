@@ -18,6 +18,19 @@
             const savedMode = localStorage.getItem('themeMode');
             if (savedMode === 'academic') {
                 document.documentElement.classList.add('academic-mode');
+                // Also set up body class as soon as it's available
+                if (document.body) {
+                    document.body.classList.add('academic-mode');
+                } else {
+                    // Wait for body to be created
+                    const observer = new MutationObserver(function(mutations, obs) {
+                        if (document.body) {
+                            document.body.classList.add('academic-mode');
+                            obs.disconnect();
+                        }
+                    });
+                    observer.observe(document.documentElement, {childList: true, subtree: true});
+                }
             }
         })();
     </script>

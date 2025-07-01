@@ -5,13 +5,13 @@
 import { FileSystemSync } from './FileSystemSync.js';
 
 export class TerminalContentLoader {
-    constructor(containerElement) {
+    constructor(containerElement, fileSystemSync) {
         if (!containerElement) {
             throw new Error('TerminalContentLoader requires a container element');
         }
         
         this.container = containerElement;
-        this.fs = new FileSystemSync();
+        this.fs = fileSystemSync;
         this.posts = [];
         this.postsPerPage = 5;
         this.currentPage = 0;
@@ -353,6 +353,25 @@ export class TerminalContentLoader {
             
             setTimeout(() => notif.remove(), 3000);
         }
+    }
+    
+    renderAcademicPost(post) {
+        const formattedDate = this.formatDate(post.date);
+        const typeLabel = post.type === 'paper' ? '[PAPER]' : '[POST]';
+        const typeClass = post.type === 'paper' ? 'paper' : 'post';
+        
+        return `
+            <article class="terminal-post academic-post ${typeClass}" data-path="${post.path}">
+                <header class="post-header">
+                    <span class="post-type">${typeLabel}</span>
+                    <h3 class="post-title">${post.title}</h3>
+                    <time class="post-date" datetime="${post.date}">${formattedDate}</time>
+                </header>
+                <div class="post-summary">
+                    <p>${post.summary}</p>
+                </div>
+            </article>
+        `;
     }
     
     destroy() {

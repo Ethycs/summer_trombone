@@ -3,6 +3,7 @@
  * Initializes all modules and manages the terminal interface
  */
 
+import { FileSystemSync } from './modules/FileSystemSync.js';
 import { TexPaperSystem } from './modules/TexPaperSystem.js';
 import { MarkdownArticleSystem } from './modules/MarkdownArticleSystem.js';
 import { WindowManager } from './modules/WindowManager.js';
@@ -46,26 +47,31 @@ class TerminalApp {
     }
 
     async initializeModules() {
-        // Initialize Theme Switcher first, as it may affect layout
-        this.modules.themeSwitcher = new ThemeSwitcher();
-        this.modules.themeSwitcher.init();
-
-        // Initialize Window Manager first, in debug mode
-        this.modules.windowManager = new WindowManager(false);
-        this.modules.windowManager.init();
-
-        // Initialize Terminal Effects
+        // Initialize FileSystemSync first as it's needed by multiple modules
+        const fileSystemSync = new FileSystemSync();
+        this.modules.fileSystemSync = fileSystemSync;
+        
+        // Initialize Terminal Effects early
         this.modules.terminalEffects = new TerminalEffects();
         this.modules.terminalEffects.init();
+        
+        // Initialize Theme Switcher with dependencies
+        this.modules.themeSwitcher = new ThemeSwitcher(fileSystemSync, this.modules.terminalEffects);
+        this.modules.themeSwitcher.init();
+
+        // Initialize Window Manager
+        this.modules.windowManager = new WindowManager(false);
+        this.modules.windowManager.init();
 
         // Initialize Mobile Handler with window manager reference
         this.modules.mobileHandler = new MobileHandler(this.modules.windowManager);
         this.modules.mobileHandler.init();
 
+
         // Initialize TeX Article System for all article windows
         document.querySelectorAll('.articles-window').forEach(async (articleWindow) => {
             try {
-                const texSystem = new TexPaperSystem(articleWindow, this.modules.terminalEffects);
+                const texSystem = new TexPaperSystem(articleWindow, this.modules.terminalEffects, fileSystemSync);
                 await texSystem.init();
                 // Store instances if needed, e.g., on the element itself
                 articleWindow.texSystem = texSystem;
@@ -77,7 +83,7 @@ class TerminalApp {
         // Initialize Markdown Article System for all blog windows
         document.querySelectorAll('.markdown-blog-window').forEach(async (blogWindow) => {
             try {
-                const markdownSystem = new MarkdownArticleSystem(blogWindow, this.modules.terminalEffects);
+                const markdownSystem = new MarkdownArticleSystem(blogWindow, this.modules.terminalEffects, fileSystemSync);
                 await markdownSystem.init();
                 blogWindow.markdownSystem = markdownSystem;
             } catch (error) {
@@ -106,7 +112,7 @@ class TerminalApp {
         const mainWindowContent = document.querySelector('.main-window .window-content');
         if (mainWindowContent) {
             try {
-                this.modules.terminalContentLoader = new TerminalContentLoader(mainWindowContent);
+                this.modules.terminalContentLoader = new TerminalContentLoader(mainWindowContent, fileSystemSync);
                 console.log('Terminal Content Loader initialized');
                 
                 // Handle file open events from terminal content

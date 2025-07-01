@@ -4,7 +4,7 @@ import { FileSystemSync } from './FileSystemSync.js';
  * TeX Paper System - Handles loading and rendering of LaTeX papers
  */
 export class TexPaperSystem {
-    constructor(containerElement, terminalEffects) {
+    constructor(containerElement, terminalEffects, fileSystemSync) {
         if (!containerElement) {
             throw new Error('TexPaperSystem requires a container element');
         }
@@ -16,7 +16,7 @@ export class TexPaperSystem {
             throw new Error('Container element must have .article-list and .article-content children.');
         }
 
-        this.fs = new FileSystemSync();
+        this.fs = fileSystemSync;
         this.terminalEffects = terminalEffects;
         this.articles = [];
         this.currentArticle = null;
@@ -153,8 +153,33 @@ export class TexPaperSystem {
         try {
             this.articleContentElement.innerHTML = '<div class="loading-indicator">Loading article...</div>';
 
+            console.log('[TexPaperSystem] Looking for article:', filename);
+            console.log('[TexPaperSystem] Available articles:', this.articles.map(a => a.filename));
+            
+            // If articles array is empty, refresh it first
+            if (this.articles.length === 0) {
+                console.log('[TexPaperSystem] Articles array is empty, refreshing...');
+                this.refreshArticleList();
+            }
+            
             const article = this.articles.find(a => a.filename === filename);
             if (!article) {
+                // Try to load directly from filesystem as a fallback
+                console.log('[TexPaperSystem] Article not in cache, trying direct load...');
+                const papers = this.fs.list('/blog/papers/');
+                const directArticle = papers.find(entry => entry.path.split('/').pop() === filename);
+                
+                if (directArticle) {
+                    const fileData = await this.fs.fetchFileContent(directArticle.path);
+                    const htmlContent = await this.parseTexInWorker(fileData);
+                    this.articleContentElement.innerHTML = htmlContent;
+                    this.renderMath();
+                    
+                    // Refresh the list for future use
+                    this.refreshArticleList();
+                    return;
+                }
+                
                 throw new Error(`Article "${filename}" not found.`);
             }
 

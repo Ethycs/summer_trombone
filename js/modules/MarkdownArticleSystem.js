@@ -4,7 +4,7 @@ import { FileSystemSync } from './FileSystemSync.js';
  * Markdown Article System - Handles loading and rendering of Markdown articles
  */
 export class MarkdownArticleSystem {
-    constructor(containerElement, terminalEffects) {
+    constructor(containerElement, terminalEffects, fileSystemSync) {
         if (!containerElement) {
             throw new Error('MarkdownArticleSystem requires a container element');
         }
@@ -16,7 +16,7 @@ export class MarkdownArticleSystem {
             throw new Error('Container element must have .article-list and .article-content children.');
         }
 
-        this.fs = new FileSystemSync();
+        this.fs = fileSystemSync;
         this.terminalEffects = terminalEffects;
         this.articles = [];
         this.currentArticle = null;
@@ -113,6 +113,8 @@ export class MarkdownArticleSystem {
             }
         });
 
+        this.messageHandlers = new Map();
+        
         this.worker.onmessage = ({ data }) => {
             const { id, html, manifest } = data;
             const handler = this.messageHandlers.get(id);
@@ -121,13 +123,21 @@ export class MarkdownArticleSystem {
                 this.messageHandlers.delete(id);
             }
         };
-        this.messageHandlers = new Map();
     }
 
     async loadArticle(filename) {
         this.currentArticle = filename;
         try {
             this.articleContentElement.innerHTML = '<div class="loading-indicator">Loading article...</div>';
+            
+            console.log('[MarkdownArticleSystem] Looking for article:', filename);
+            console.log('[MarkdownArticleSystem] Available articles:', this.articles.map(a => a.filename));
+            
+            // If articles array is empty, refresh it first
+            if (this.articles.length === 0) {
+                console.log('[MarkdownArticleSystem] Articles array is empty, refreshing...');
+                this.refreshArticleList();
+            }
             
             const article = this.articles.find(a => a.filename === filename);
             if (!article) {
@@ -137,8 +147,7 @@ export class MarkdownArticleSystem {
             let markdownContent = article.content;
             // If content is not pre-loaded (e.g., in production), fetch it.
             if (markdownContent === null) {
-                const fileData = await this.fs.fetchFileContent(article.path);
-                markdownContent = fileData.content;
+                markdownContent = await this.fs.fetchFileContent(article.path);
             }
             
             const { html, manifest } = await this.renderMarkdown(markdownContent);

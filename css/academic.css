@@ -19,11 +19,18 @@ body.academic-mode {
     overflow-y: scroll; /* Always show scrollbar */
 }
 
-/* Hide all the hacker-mode UI */
+/* Hide all the hacker-mode UI except mode toggle */
 body.academic-mode .desktop,
 body.academic-mode .taskbar,
 body.academic-mode .window {
     display: none !important;
+}
+
+/* Keep mode toggle button visible */
+body.academic-mode #mode-toggle {
+    display: flex !important; /* flex to match the default display */
+    position: fixed;
+    z-index: 10002; /* Above academic view */
 }
 
 /* Show the academic content container */

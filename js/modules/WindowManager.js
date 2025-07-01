@@ -229,4 +229,20 @@ export class WindowManager {
             }
         });
     }
+
+    setupMobileMode() {
+        // Disable dragging for mobile mode
+        this.windows.forEach(window => {
+            const header = window.querySelector('.window-header');
+            if (header) {
+                header.style.cursor = 'default';
+            }
+        });
+        
+        // Remove any existing drag event listeners
+        this.dragState.isDragging = false;
+        this.activeWindow = null;
+        
+        if (this.debug) console.log('WindowManager: Mobile mode enabled');
+    }
 }

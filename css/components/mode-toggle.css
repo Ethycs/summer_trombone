@@ -4,7 +4,7 @@
     position: fixed;
     bottom: 40px; /* Increased from 20px to raise the button */
     right: 20px;
-    z-index: 1001; /* Above taskbar, below active windows */
+    z-index: 10002; /* Above everything including academic view */
     width: 50px;
     height: 50px;
     background-color: var(--terminal-bg-dim);
