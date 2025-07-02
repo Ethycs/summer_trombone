@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'path';
 import { blogSyncPlugin } from './vite-plugin-blog-sync.js';
-import { runScriptsPlugin } from './vite-plugin-run-scripts.js';
+import { buildArticlesPlugin } from './vite-plugin-build-articles.js';
 import { copyBlogPlugin } from './vite-plugin-copy-blog.js';
 
 // Determine base path based on environment variable or build context
@@ -22,11 +22,9 @@ export default defineConfig(({ command }) => ({
   base: getBasePath(),
   plugins: [
     blogSyncPlugin(),
-    command === 'build' && runScriptsPlugin({
-      scripts: ['node build-articles.js']
-    }),
+    buildArticlesPlugin(),
     copyBlogPlugin()
-  ].filter(Boolean),
+  ],
   publicDir: 'public',
   build: {
     rollupOptions: {
