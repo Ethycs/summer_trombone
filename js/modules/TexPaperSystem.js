@@ -187,56 +187,59 @@ export class TexPaperSystem {
         try {
             this.articleContentElement.innerHTML = '<div class="loading-indicator">Loading article...</div>';
 
-            console.log('[TexPaperSystem] Looking for article:', filename);
-            console.log('[TexPaperSystem] Available articles:', this.articles.map(a => a.filename));
-            
-            // If articles array is empty, refresh it first
-            if (this.articles.length === 0) {
-                console.log('[TexPaperSystem] Articles array is empty, refreshing...');
-                this.refreshArticleList();
-            }
-            
-            const article = this.articles.find(a => a.filename === filename);
-            if (!article) {
-                // Try to load directly from filesystem as a fallback
-                console.log('[TexPaperSystem] Article not in cache, trying direct load...');
-                const papers = this.fs.list('/blog/papers/');
-                const directArticle = papers.find(entry => entry.path.split('/').pop() === filename);
-                
-                if (directArticle) {
-                    let texContent = directArticle.content.content;
-                    if (texContent === null) {
-                        texContent = await this.fs.fetchFileContent(directArticle.path);
-                    }
-                    const htmlContent = await this.parseTexInWorker(texContent);
-                    this.articleContentElement.innerHTML = htmlContent;
+            if (import.meta.env.PROD) {
+                const response = await fetch('/dist/articles.json');
+                const articles = await response.json();
+                const articlePath = `/blog/papers/${filename}`;
+                const articleData = articles[articlePath];
+
+                if (articleData && articleData.html) {
+                    this.articleContentElement.innerHTML = articleData.html;
                     this.renderMath();
-                    
-                    // Refresh the list for future use
-                    this.refreshArticleList();
-                    return;
+                } else {
+                    throw new Error(`Article "${filename}" not found in pre-built data.`);
                 }
-                
-                throw new Error(`Article "${filename}" not found.`);
-            }
+            } else {
+                console.log('[TexPaperSystem] Looking for article:', filename);
+                console.log('[TexPaperSystem] Available articles:', this.articles.map(a => a.filename));
 
-            let texContent = article.content;
-            console.log('[TexPaperSystem] Initial texContent:', texContent);
-            
-            if (texContent === null) {
-                console.log('[TexPaperSystem] Fetching content for:', article.path);
-                texContent = await this.fs.fetchFileContent(article.path);
-                console.log('[TexPaperSystem] Fetched content length:', texContent ? texContent.length : 'null');
-            }
+                if (this.articles.length === 0) {
+                    console.log('[TexPaperSystem] Articles array is empty, refreshing...');
+                    this.refreshArticleList();
+                }
 
-            console.log('[TexPaperSystem] Final texContent type:', typeof texContent);
-            const htmlContent = await this.parseTexInWorker(texContent);
-            this.articleContentElement.innerHTML = htmlContent;
-            
-            this.renderMath();
-            
+                const article = this.articles.find(a => a.filename === filename);
+                if (!article) {
+                    console.log('[TexPaperSystem] Article not in cache, trying direct load...');
+                    const papers = this.fs.list('/blog/papers/');
+                    const directArticle = papers.find(entry => entry.path.split('/').pop() === filename);
+
+                    if (directArticle) {
+                        let texContent = directArticle.content.content;
+                        if (texContent === null) {
+                            texContent = await this.fs.fetchFileContent(directArticle.path);
+                        }
+                        const htmlContent = await this.parseTexInWorker(texContent);
+                        this.articleContentElement.innerHTML = htmlContent;
+                        this.renderMath();
+                        this.refreshArticleList();
+                        return;
+                    }
+
+                    throw new Error(`Article "${filename}" not found.`);
+                }
+
+                let texContent = article.content;
+                if (texContent === null) {
+                    texContent = await this.fs.fetchFileContent(article.path);
+                }
+
+                const htmlContent = await this.parseTexInWorker(texContent);
+                this.articleContentElement.innerHTML = htmlContent;
+                this.renderMath();
+            }
         } catch (error) {
-            this.articleContentElement.innerHTML = 
+            this.articleContentElement.innerHTML =
                 `<div class="error-message">Error loading article: ${error.message}</div>`;
             this.currentArticle = null;
         }

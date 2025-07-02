@@ -129,48 +129,55 @@ export class MarkdownArticleSystem {
         this.currentArticle = filename;
         try {
             this.articleContentElement.innerHTML = '<div class="loading-indicator">Loading article...</div>';
-            
-            console.log('[MarkdownArticleSystem] Looking for article:', filename);
-            console.log('[MarkdownArticleSystem] Available articles:', this.articles.map(a => a.filename));
-            
-            // If articles array is empty, refresh it first
-            if (this.articles.length === 0) {
-                console.log('[MarkdownArticleSystem] Articles array is empty, refreshing...');
-                this.refreshArticleList();
-            }
-            
-            let article = this.articles.find(a => a.filename === filename);
-            if (!article) {
-                // Try to load directly from filesystem as a fallback
-                console.log('[MarkdownArticleSystem] Article not in cache, trying direct load...');
-                const posts = this.fs.list('/blog/posts/');
-                const directArticle = posts.find(entry => entry.path.split('/').pop() === filename);
-                
-                if (directArticle) {
-                    article = {
-                        path: directArticle.path,
-                        filename: filename,
-                        content: directArticle.content.content
-                    };
+
+            if (import.meta.env.PROD) {
+                const response = await fetch('/dist/articles.json');
+                const articles = await response.json();
+                const articlePath = `/blog/posts/${filename}`;
+                const articleData = articles[articlePath];
+
+                if (articleData && articleData.html) {
+                    this.articleContentElement.innerHTML = articleData.html;
                 } else {
-                    throw new Error(`Article "${filename}" not found.`);
+                    throw new Error(`Article "${filename}" not found in pre-built data.`);
                 }
-            }
+            } else {
+                console.log('[MarkdownArticleSystem] Looking for article:', filename);
+                console.log('[MarkdownArticleSystem] Available articles:', this.articles.map(a => a.filename));
 
-            let markdownContent = article.content;
-            // If content is not pre-loaded (e.g., in production), fetch it.
-            if (markdownContent === null) {
-                markdownContent = await this.fs.fetchFileContent(article.path);
-            }
-            
-            const { html, manifest } = await this.renderMarkdown(markdownContent);
-            
-            this.articleContentElement.innerHTML = html;
-            
-            this.postProcess(manifest);
+                if (this.articles.length === 0) {
+                    console.log('[MarkdownArticleSystem] Articles array is empty, refreshing...');
+                    this.refreshArticleList();
+                }
 
+                let article = this.articles.find(a => a.filename === filename);
+                if (!article) {
+                    console.log('[MarkdownArticleSystem] Article not in cache, trying direct load...');
+                    const posts = this.fs.list('/blog/posts/');
+                    const directArticle = posts.find(entry => entry.path.split('/').pop() === filename);
+
+                    if (directArticle) {
+                        article = {
+                            path: directArticle.path,
+                            filename: filename,
+                            content: directArticle.content.content
+                        };
+                    } else {
+                        throw new Error(`Article "${filename}" not found.`);
+                    }
+                }
+
+                let markdownContent = article.content;
+                if (markdownContent === null) {
+                    markdownContent = await this.fs.fetchFileContent(article.path);
+                }
+
+                const { html, manifest } = await this.renderMarkdown(markdownContent);
+                this.articleContentElement.innerHTML = html;
+                this.postProcess(manifest);
+            }
         } catch (error) {
-            this.articleContentElement.innerHTML = 
+            this.articleContentElement.innerHTML =
                 `<div class="error-message">Error loading article: ${error.message}</div>`;
             this.currentArticle = null;
         }

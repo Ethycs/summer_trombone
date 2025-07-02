@@ -18,9 +18,15 @@ const getBasePath = () => {
   return '/';
 };
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   base: getBasePath(),
-  plugins: [blogSyncPlugin(), runScriptsPlugin(), copyBlogPlugin()],
+  plugins: [
+    blogSyncPlugin(),
+    command === 'build' && runScriptsPlugin({
+      scripts: ['node build-articles.js']
+    }),
+    copyBlogPlugin()
+  ].filter(Boolean),
   publicDir: 'public',
   build: {
     rollupOptions: {
@@ -54,5 +60,5 @@ export default defineConfig({
         next();
       });
     }
-  },
-});
+  }
+}));
