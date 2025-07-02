@@ -206,7 +206,8 @@ export class TexPaperSystem {
 
     parseTexInWorker(texContent) {
         return new Promise((resolve, reject) => {
-            const worker = new Worker('./js/modules/TexParser.worker.js', { type: 'module' });
+            const workerUrl = new URL('./TexParser.worker.js', import.meta.url);
+            const worker = new Worker(workerUrl, { type: 'module' });
 
             worker.onmessage = (e) => {
                 resolve(e.data);
