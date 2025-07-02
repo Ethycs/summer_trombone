@@ -34,8 +34,10 @@ jobs:
         id: generate_manifest
         run: node .github/scripts/generate-manifest.js
         
-      - name: Generate summaries
-        run: node .github/scripts/generate-summaries.mjs
+      - name: Generate summaries for changed files
+        run: |
+          echo "Checking for files that need new summaries..."
+          node .github/scripts/generate-summaries.mjs
 
       - name: Commit and push manifest
         uses: stefanzweifel/git-auto-commit-action@v6

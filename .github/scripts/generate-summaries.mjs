@@ -13,16 +13,20 @@ async function generateSummaries() {
     const manifestPath = path.join(root, 'system', 'filesystem.json');
     const manifest = JSON.parse(await fs.readFile(manifestPath, 'utf-8'));
 
-    console.log('Generating summaries for all articles...');
+    console.log('Generating summaries for changed articles...');
+    let summariesGenerated = 0;
+    let summariesSkipped = 0;
+    
     for (const file of Object.values(manifest.files)) {
         if (file.type === 'Markdown Post' || file.type === 'TeX Article') {
-            const filePath = path.join(root, file.path);
-            const stats = await fs.stat(filePath);
-            const lastModified = new Date(stats.mtime);
-            const summaryModified = file.summary ? new Date(file.summary.modified) : new Date(0);
-
-            if (!file.summary || lastModified > summaryModified) {
-                console.log(`  - ${file.path}`);
+            // Check if summary needs to be generated
+            const needsSummary = !file.summary || 
+                                !file.summary.contentHash || 
+                                file.summary.contentHash !== file.contentHash;
+            
+            if (needsSummary) {
+                console.log(`  - Generating summary for ${file.path}`);
+                const filePath = path.join(root, file.path);
                 const content = await fs.readFile(filePath, 'utf-8');
                 const summary = await summarizer(content, {
                     max_length: 50,
@@ -30,11 +34,17 @@ async function generateSummaries() {
                 });
                 file.summary = {
                     text: summary[0].summary_text,
-                    modified: new Date().toISOString()
+                    modified: new Date().toISOString(),
+                    contentHash: file.contentHash
                 };
+                summariesGenerated++;
+            } else {
+                summariesSkipped++;
             }
         }
     }
+    
+    console.log(`Summaries generated: ${summariesGenerated}, skipped: ${summariesSkipped}`);
 
     console.log('Writing updated filesystem.json...');
     await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2));
