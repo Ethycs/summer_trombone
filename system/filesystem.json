@@ -5,15 +5,23 @@
       "path": "/blog/papers/premium_for_that.tex",
       "type": "TeX Article",
       "created": "2025-06-25T16:50:26.000Z",
-      "modified": "2025-06-28T19:42:37.000Z"
+      "modified": "2025-06-28T19:42:37.000Z",
+      "summary": {
+        "text": " The paper argues that insurance requirements can align private incentives with civilizational survival while making AI doom prohibitively expensive to ignore. We propose the first comprehensive framework for translating AI existential risk into actuarial mechanisms, transforming abstract probability estimates into concrete economic",
+        "modified": "2025-07-02T00:23:21.666Z"
+      }
     },
     "blog-posts-Green Teaming": {
       "id": "blog-posts-Green Teaming",
       "path": "/blog/posts/Green Teaming.md",
       "type": "Markdown Post",
       "created": "2025-06-27T18:41:13.000Z",
-      "modified": "2025-06-28T21:23:48.000Z"
+      "modified": "2025-06-28T21:23:48.000Z",
+      "summary": {
+        "text": " The purpose of Green Teaming is not to cause harm, but to proactively discover, understand, and ultimately neutralize the upper bounds of AI-driven catastrophic potential.",
+        "modified": "2025-07-02T00:23:37.119Z"
+      }
     }
   },
-  "lastUpdated": "2025-07-02T00:16:52.154Z"
+  "lastUpdated": "2025-07-02T00:23:02.246Z"
 }
