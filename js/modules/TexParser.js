@@ -22,6 +22,12 @@ export class TexParser {
         this.mathCounter = 0;
         this.errors = [];
 
+        // Check if texContent is valid
+        if (!texContent || typeof texContent !== 'string') {
+            console.error('[TexParser] Invalid input: texContent is', typeof texContent, texContent);
+            return '<div class="error-message">No content to parse</div>';
+        }
+
         try {
             const titleMatch = texContent.match(/\\title\{([^}]+)\}/);
             const authorMatch = texContent.match(/\\author\{([^}]+)\}/);

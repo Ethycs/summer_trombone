@@ -222,8 +222,7 @@ export class TexPaperSystem {
 
             let texContent = article.content;
             if (texContent === null) {
-                const fileData = await this.fs.fetchFileContent(article.path);
-                texContent = fileData.content;
+                texContent = await this.fs.fetchFileContent(article.path);
             }
 
             const htmlContent = await this.parseTexInWorker(texContent);
