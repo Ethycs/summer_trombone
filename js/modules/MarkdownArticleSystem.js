@@ -131,7 +131,8 @@ export class MarkdownArticleSystem {
             this.articleContentElement.innerHTML = '<div class="loading-indicator">Loading article...</div>';
 
             if (import.meta.env.PROD) {
-                const response = await fetch('/dist/articles.json');
+                const basePath = import.meta.env.BASE_URL;
+                const response = await fetch(`${basePath}articles.json`);
                 const articles = await response.json();
                 const articlePath = `/blog/posts/${filename}`;
                 const articleData = articles[articlePath];

@@ -45,9 +45,6 @@ export default defineConfig(({ command }) => ({
     exclude: ['./js/modules/TexParser.worker.js', './js/modules/md.worker.js']
   },
   server: {
-    headers: {
-      'Content-Security-Policy-Report-Only': "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; worker-src 'self' blob: data:; font-src 'self' https://cdn.jsdelivr.net https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com;"
-    },
     watch: {
       // Watch these directories for changes
       include: ['posts/**', 'papers/**', 'drafts/**'],
