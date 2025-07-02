@@ -4,8 +4,22 @@ import { blogSyncPlugin } from './vite-plugin-blog-sync.js';
 import { runScriptsPlugin } from './vite-plugin-run-scripts.js';
 import { copyBlogPlugin } from './vite-plugin-copy-blog.js';
 
+// Determine base path based on environment variable or build context
+const getBasePath = () => {
+  // Check for custom domain environment variable
+  if (process.env.VITE_CUSTOM_DOMAIN === 'true') {
+    return '/';
+  }
+  // Default to GitHub Pages path for production
+  if (process.env.NODE_ENV === 'production') {
+    return '/summer_trombone/';
+  }
+  // Development
+  return '/';
+};
+
 export default defineConfig({
-  base: process.env.NODE_ENV === 'production' ? '/summer_trombone/' : '/',
+  base: getBasePath(),
   plugins: [blogSyncPlugin(), runScriptsPlugin(), copyBlogPlugin()],
   publicDir: 'public',
   build: {

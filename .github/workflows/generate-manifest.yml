@@ -58,7 +58,14 @@ jobs:
           commit_author: "github-actions[bot] <github-actions[bot]@users.noreply.github.com>"
 
       - name: Build project
-        run: npm run build
+        run: |
+          if [ -f "CNAME" ]; then
+            echo "Custom domain detected, building with root base path"
+            npm run build:custom-domain
+          else
+            echo "No custom domain, building for GitHub Pages"
+            npm run build:github-pages
+          fi
 
       - name: Setup Pages
         uses: actions/configure-pages@v4

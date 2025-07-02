@@ -27,6 +27,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:custom-domain": "VITE_CUSTOM_DOMAIN=true vite build",
+    "build:github-pages": "vite build",
     "dev:scripts": "vite -- --run-scripts"
   }
 }
