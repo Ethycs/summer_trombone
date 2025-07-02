@@ -47,7 +47,7 @@ jobs:
           commit_author: "github-actions[bot] <github-actions[bot]@users.noreply.github.com>"
 
       - name: Build project
-        run: NODE_OPTIONS="--experimental-global-webcrypto" npm run build
+        run: npm run build
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
