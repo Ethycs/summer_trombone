@@ -6,12 +6,11 @@ import { TexParser } from './js/modules/TexParser.js';
 export function buildArticlesPlugin() {
     return {
         name: 'vite-plugin-build-articles',
-        async buildStart() {
-            if (process.env.NODE_ENV !== 'production') {
-                return;
-            }
+        apply: 'build', // Only run during build
+        async writeBundle(options, bundle) {
+            console.log('[buildArticlesPlugin] Building articles...');
 
-            const outputDir = path.resolve(process.cwd(), 'dist');
+            const outputDir = options.dir || path.resolve(process.cwd(), 'dist');
             const outputFile = path.resolve(outputDir, 'articles.json');
 
             try {
@@ -55,12 +54,16 @@ export function buildArticlesPlugin() {
                     }
                 }
 
+                console.log(`[buildArticlesPlugin] Processed ${Object.keys(articles).length} articles`);
+                console.log(`[buildArticlesPlugin] Writing to: ${outputFile}`);
+                
                 await fs.mkdir(outputDir, { recursive: true });
                 await fs.writeFile(outputFile, JSON.stringify(articles, null, 2));
-                console.log(`Successfully built ${Object.keys(articles).length} articles to ${outputFile}`);
+                
+                console.log(`[buildArticlesPlugin] Successfully wrote articles.json to ${outputFile}`);
             } catch (error) {
-                console.error('Error building articles:', error);
-                process.exit(1);
+                console.error('[buildArticlesPlugin] Error:', error);
+                throw error; // Re-throw to make build fail
             }
         }
     };

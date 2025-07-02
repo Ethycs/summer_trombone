@@ -67,6 +67,25 @@ jobs:
             npm run build:github-pages
           fi
 
+      - name: Verify articles.json generation
+        run: |
+          echo "Checking for articles.json file..."
+          if [ -f "dist/articles.json" ]; then
+            echo "✅ articles.json found!"
+            echo "File size: $(ls -lh dist/articles.json | awk '{print $5}')"
+            echo "Number of articles: $(grep -o '"\/blog\/' dist/articles.json | wc -l)"
+            echo "First 500 characters:"
+            head -c 500 dist/articles.json
+            echo ""
+            echo "Articles included:"
+            grep -o '"\/blog\/[^"]*"' dist/articles.json | sort | uniq
+          else
+            echo "❌ ERROR: articles.json not found!"
+            echo "Contents of dist directory:"
+            ls -la dist/
+            exit 1
+          fi
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
@@ -78,3 +97,32 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: Verify deployment
+        if: success()
+        run: |
+          echo "Deployment complete. Waiting 30 seconds for propagation..."
+          sleep 30
+          
+          # Determine the URL based on CNAME
+          if [ -f "CNAME" ]; then
+            DOMAIN=$(cat CNAME)
+            BASE_URL="https://${DOMAIN}"
+          else
+            BASE_URL="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}"
+          fi
+          
+          echo "Testing articles.json at: ${BASE_URL}/articles.json"
+          
+          # Test if articles.json is accessible
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${BASE_URL}/articles.json")
+          
+          if [ "$HTTP_STATUS" = "200" ]; then
+            echo "✅ articles.json is accessible (HTTP $HTTP_STATUS)"
+            echo "File content preview:"
+            curl -s "${BASE_URL}/articles.json" | head -c 500
+          else
+            echo "⚠️ WARNING: articles.json returned HTTP $HTTP_STATUS"
+            echo "This might be normal if the deployment hasn't fully propagated yet."
+            echo "Please check manually at: ${BASE_URL}/articles.json"
+          fi
