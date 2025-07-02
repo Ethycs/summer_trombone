@@ -4,6 +4,7 @@ import { blogSyncPlugin } from './vite-plugin-blog-sync.js';
 import { runScriptsPlugin } from './vite-plugin-run-scripts.js';
 
 export default defineConfig({
+  base: process.env.NODE_ENV === 'production' ? '/summer_trombone/' : '/',
   plugins: [blogSyncPlugin(), runScriptsPlugin()],
   build: {
     rollupOptions: {
