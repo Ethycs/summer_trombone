@@ -6,13 +6,16 @@ import { runScriptsPlugin } from './vite-plugin-run-scripts.js';
 export default defineConfig({
   base: process.env.NODE_ENV === 'production' ? '/summer_trombone/' : '/',
   plugins: [blogSyncPlugin(), runScriptsPlugin()],
+  publicDir: 'public',
   build: {
     rollupOptions: {
       input: {
         main: resolve(__dirname, 'index.html'),
         reader: resolve(__dirname, 'reader.html')
       }
-    }
+    },
+    // Copy static files
+    copyPublicDir: true
   },
   server: {
     headers: {
