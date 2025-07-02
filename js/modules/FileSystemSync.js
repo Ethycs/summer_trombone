@@ -210,9 +210,18 @@ class FileSystemSync {
         // Handle base path for GitHub Pages - import.meta.env.BASE_URL includes trailing slash
         const basePath = import.meta.env.BASE_URL;
         const fullPath = basePath + path.replace(/^\//, '');
-        const response = await fetch(fullPath + '?t=' + new Date().getTime());
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        return await response.text();
+        console.log('[FileSystemSync] Fetching file from:', fullPath);
+        
+        try {
+            const response = await fetch(fullPath + '?t=' + new Date().getTime());
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            const text = await response.text();
+            console.log('[FileSystemSync] Fetched content length:', text.length);
+            return text;
+        } catch (error) {
+            console.error('[FileSystemSync] Error fetching file:', error);
+            throw error;
+        }
     }
 
     handleFileAdded(path) {

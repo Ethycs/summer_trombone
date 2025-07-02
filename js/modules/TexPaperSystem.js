@@ -221,10 +221,15 @@ export class TexPaperSystem {
             }
 
             let texContent = article.content;
+            console.log('[TexPaperSystem] Initial texContent:', texContent);
+            
             if (texContent === null) {
+                console.log('[TexPaperSystem] Fetching content for:', article.path);
                 texContent = await this.fs.fetchFileContent(article.path);
+                console.log('[TexPaperSystem] Fetched content length:', texContent ? texContent.length : 'null');
             }
 
+            console.log('[TexPaperSystem] Final texContent type:', typeof texContent);
             const htmlContent = await this.parseTexInWorker(texContent);
             this.articleContentElement.innerHTML = htmlContent;
             
@@ -238,6 +243,8 @@ export class TexPaperSystem {
     }
 
     async parseTexInWorker(texContent) {
+        console.log('[TexPaperSystem] parseTexInWorker called with content type:', typeof texContent, 'length:', texContent?.length);
+        
         if (this.worker) {
             // Use the persistent worker
             return new Promise((resolve) => {
@@ -250,6 +257,14 @@ export class TexPaperSystem {
                         this.parseTexFallback(texContent).then(resolve);
                     }
                 });
+                
+                // Make sure texContent is defined before sending
+                if (!texContent) {
+                    console.error('[TexPaperSystem] texContent is undefined/null, using fallback');
+                    this.parseTexFallback(texContent).then(resolve);
+                    return;
+                }
+                
                 this.worker.postMessage({ id, texContent });
             });
         } else {
