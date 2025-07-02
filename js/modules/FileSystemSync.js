@@ -106,18 +106,24 @@ class FileSystemSync {
     async scanWithManifest() {
         try {
             const basePath = import.meta.env.BASE_URL;
+            console.log('[FileSystemSync] Loading manifest from:', basePath + 'system/filesystem.json');
             const response = await fetch(basePath + 'system/filesystem.json?t=' + new Date().getTime());
             if (!response.ok) throw new Error('Failed to fetch filesystem manifest');
             const manifest = await response.json();
 
+            console.log('[FileSystemSync] Manifest loaded, files:', Object.keys(manifest.files).length);
             this.filesystem.clear();
             for (const file of Object.values(manifest.files)) {
                 this.addFile(file.path, {
                     content: null,
                     created: file.created,
-                    modified: file.modified
+                    modified: file.modified,
+                    summary: file.summary,
+                    title: file.title,
+                    type: file.type
                 });
             }
+            console.log('[FileSystemSync] Production scan complete, total files:', this.filesystem.size);
         } catch (error) {
             console.error('[FileSystemSync] Error loading production manifest:', error);
         }

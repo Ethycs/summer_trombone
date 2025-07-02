@@ -92,7 +92,8 @@ export class TerminalContentLoader {
                     return acc;
                 }, {});
             } else {
-                const response = await fetch('/system/filesystem.json?t=' + new Date().getTime());
+                const basePath = import.meta.env.BASE_URL;
+                const response = await fetch(basePath + 'system/filesystem.json?t=' + new Date().getTime());
                 const manifest = await response.json();
                 this.metadata = Object.values(manifest.files).reduce((acc, file) => {
                     acc[file.path] = file;
@@ -106,26 +107,34 @@ export class TerminalContentLoader {
     }
     
     async loadContent() {
-        // Use metadata directly from filesystem.json
-        this.posts = Object.entries(this.metadata)
+        // Get files from FileSystemSync
+        const allFiles = this.fs.getAllFilesAsObject().files;
+        console.log('[TerminalContentLoader] All files from FileSystemSync:', Object.keys(allFiles));
+        
+        this.posts = Object.entries(allFiles)
             .filter(([path, file]) => {
-                return path.includes('/posts/') || path.includes('/papers/');
+                const matches = path.includes('/posts/') || path.includes('/papers/');
+                console.log(`[TerminalContentLoader] Checking ${path}: ${matches ? 'MATCH' : 'skip'}`);
+                return matches;
             })
             .map(([path, file]) => {
                 const filename = path.split('/').pop();
                 const type = path.includes('/posts/') ? 'post' : 'paper';
                 const ext = filename.split('.').pop();
                 
+                // Get metadata if available
+                const metadata = this.metadata[path] || {};
+                
                 return {
                     path,
                     filename,
                     type,
                     ext,
-                    title: file?.title || this.extractTitleFromFilename(filename),
-                    date: file?.modified,
-                    created: file?.created,
-                    summary: file?.summary || this.generateDefaultSummary(type, filename),
-                    content: null // Content will be loaded on demand
+                    title: metadata?.title || file?.title || this.extractTitleFromFilename(filename),
+                    date: metadata?.modified || file?.modified,
+                    created: metadata?.created || file?.created,
+                    summary: metadata?.summary || file?.summary || this.generateDefaultSummary(type, filename),
+                    content: file?.content || null // Content from FileSystemSync
                 };
             })
             .sort((a, b) => {
@@ -153,6 +162,7 @@ export class TerminalContentLoader {
     }
     
     render() {
+        console.log('[TerminalContentLoader] Rendering with posts:', this.posts.length);
         this.container.classList.add('terminal-content-loader');
         
         // Preserve ASCII header and cursor if they exist
@@ -167,6 +177,7 @@ export class TerminalContentLoader {
             '<div><span class="prompt">wintermute@straylight:~$</span> <span class="cursor"></span></div>';
         
         if (this.posts.length === 0) {
+            console.log('[TerminalContentLoader] No posts found, showing empty state');
             this.container.innerHTML = asciiHeaderHtml + this.renderEmptyState() + cursorHtml;
             return;
         }
@@ -325,11 +336,13 @@ export class TerminalContentLoader {
         console.log(`[TerminalContentLoader] Filesystem change: ${event}`, data);
         
         // Reload content on relevant changes
-        if (event === 'file-added' || event === 'file-removed' || event === 'file-change') {
+        if (event === 'scan-complete' || event === 'file-added' || event === 'file-removed' || event === 'file-change') {
             await this.loadMetadata();
             await this.loadContent();
             this.render();
-            this.showNotification(event, data);
+            if (event !== 'scan-complete') {
+                this.showNotification(event, data);
+            }
         }
     }
     

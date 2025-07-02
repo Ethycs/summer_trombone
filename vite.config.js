@@ -18,9 +18,18 @@ export default defineConfig({
     // Copy static files
     copyPublicDir: true
   },
+  worker: {
+    format: 'es',
+    rollupOptions: {
+      output: {
+        // Ensure workers are emitted as separate files, not data URLs
+        inlineDynamicImports: false
+      }
+    }
+  },
   server: {
     headers: {
-      'Content-Security-Policy-Report-Only': "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; worker-src 'self' blob:; font-src 'self' https://cdn.jsdelivr.net https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com;"
+      'Content-Security-Policy-Report-Only': "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; worker-src 'self' blob: data:; font-src 'self' https://cdn.jsdelivr.net https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com;"
     },
     watch: {
       // Watch these directories for changes
