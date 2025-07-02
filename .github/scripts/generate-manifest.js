@@ -6,6 +6,16 @@ const contentRoot = 'blog';
 const subdirectories = ['papers', 'posts'];
 const outputFile = path.join('system', 'filesystem.json'); // Output to system/filesystem.json
 
+// Load existing manifest to preserve summaries
+let existingManifest = {};
+if (fs.existsSync(outputFile)) {
+    try {
+        existingManifest = JSON.parse(fs.readFileSync(outputFile, 'utf8'));
+    } catch (error) {
+        console.warn('Could not parse existing manifest. Starting fresh.');
+    }
+}
+
 const manifest = {
     files: {},
     lastUpdated: new Date().toISOString()
@@ -59,6 +69,10 @@ subdirectories.forEach(subdir => {
             const fileId = getFileId(fullFilePath);
             const virtualPath = `/${contentRoot}/${subdir}/${file}`;
 
+            // Preserve existing summary if available
+            const existingEntry = existingManifest.files && existingManifest.files[fileId];
+            const existingSummary = existingEntry ? existingEntry.summary : undefined;
+            
             manifest.files[fileId] = {
                 id: fileId,
                 path: virtualPath,
@@ -66,6 +80,11 @@ subdirectories.forEach(subdir => {
                 created: getGitFirstCommitDate(fullFilePath),
                 modified: getGitLastCommitDate(fullFilePath)
             };
+            
+            // Add summary if it exists
+            if (existingSummary) {
+                manifest.files[fileId].summary = existingSummary;
+            }
             console.log(`Processed: ${fileId} -> ${virtualPath}`);
         }
     });
