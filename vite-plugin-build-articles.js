@@ -1,30 +1,7 @@
 import { promises as fs } from 'fs';
 import path from 'path';
-import MarkdownIt from 'markdown-it';
-import markdownItAnchor from 'markdown-it-anchor';
-import markdownItFootnote from 'markdown-it-footnote';
-import markdownItTaskLists from 'markdown-it-task-lists';
-import markdownItContainer from 'markdown-it-container';
-import markdownItKatex from 'markdown-it-katex';
+import { render as renderMarkdown } from './js/modules/md.worker.js';
 import { TexParser } from './js/modules/TexParser.js';
-
-const md = new MarkdownIt({ linkify: true, typographer: true })
-  .use(markdownItAnchor, { permalink: markdownItAnchor.permalink.headerLink() })
-  .use(markdownItFootnote)
-  .use(markdownItTaskLists, { enabled: true })
-  .use(markdownItContainer, 'info')
-  .use(markdownItKatex, {
-    throwOnError: false,
-    displayMode: true,
-    fleqn: false,
-    output: 'html',
-    delimiters: [
-      {left: "$$", right: "$$", display: true},
-      {left: "$", right: "$", display: false},
-      {left: "\\(", right: "\\)", display: false},
-      {left: "\\[", right: "\\]", display: true}
-    ]
-  });
 
 export function buildArticlesPlugin() {
     return {
@@ -63,13 +40,8 @@ export function buildArticlesPlugin() {
                     const ext = path.extname(fullPath);
 
                     if (ext === '.md') {
-                        let processedMarkdown = content.replace(/\$\$\s*([^\$]+)\s*\$\$/g, (match, math) => {
-                            if (match.includes('\n')) {
-                                return match;
-                            }
-                            return '\n$$\n' + math.trim() + '\n$$\n';
-                        });
-                        html = md.render(processedMarkdown);
+                        const result = renderMarkdown(content);
+                        html = result.html;
                     } else if (ext === '.tex') {
                         const parser = new TexParser();
                         html = parser.parse(content);

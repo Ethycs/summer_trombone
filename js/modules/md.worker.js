@@ -11,7 +11,7 @@ const md = new MarkdownIt({ linkify: true, typographer: true })
   .use(markdownItFootnote)
   .use(markdownItTaskLists, { enabled: true })
   .use(markdownItContainer, 'info')
-  .use(markdownItKatex, { 
+  .use(markdownItKatex, {
     throwOnError: false,
     displayMode: true,
     fleqn: false,
@@ -24,31 +24,30 @@ const md = new MarkdownIt({ linkify: true, typographer: true })
     ]
   });
 
-self.onmessage = e => {
-  const { id, markdown } = e.data;
-  try {
-    // Preprocess markdown to fix $$ on same line
-    let processedMarkdown = markdown;
-    
-    // Replace inline $$ ... $$ with block format
-    processedMarkdown = processedMarkdown.replace(/\$\$\s*([^\$]+)\s*\$\$/g, (match, math) => {
-      // If the match contains newlines, it's already a block, leave it alone
-      if (match.includes('\n')) {
-        return match;
-      }
-      // Otherwise, convert to block format
-      return '\n$$\n' + math.trim() + '\n$$\n';
+export function render(markdown) {
+    let processedMarkdown = markdown.replace(/\$\$\s*([^\$]+)\s*\$\$/g, (match, math) => {
+        if (match.includes('\n')) {
+            return match;
+        }
+        return '\n$$\n' + math.trim() + '\n$$\n';
     });
-    
+
     const html = md.render(processedMarkdown);
-    
-    // Check what features are used in the rendered HTML
     const manifest = [];
     if (html.includes('class="katex"')) manifest.push('katex');
     if (html.includes('language-mermaid')) manifest.push('mermaid');
-    
-    self.postMessage({ id, html, manifest });
-  } catch (err) {
-    self.postMessage({ id, error: err.message, manifest: [] });
-  }
-};
+
+    return { html, manifest };
+}
+
+if (typeof self !== 'undefined') {
+    self.onmessage = e => {
+        const { id, markdown } = e.data;
+        try {
+            const { html, manifest } = render(markdown);
+            self.postMessage({ id, html, manifest });
+        } catch (err) {
+            self.postMessage({ id, error: err.message, manifest: [] });
+        }
+    };
+}
