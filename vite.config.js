@@ -2,10 +2,11 @@ import { defineConfig } from 'vite';
 import { resolve } from 'path';
 import { blogSyncPlugin } from './vite-plugin-blog-sync.js';
 import { runScriptsPlugin } from './vite-plugin-run-scripts.js';
+import { copyBlogPlugin } from './vite-plugin-copy-blog.js';
 
 export default defineConfig({
   base: process.env.NODE_ENV === 'production' ? '/summer_trombone/' : '/',
-  plugins: [blogSyncPlugin(), runScriptsPlugin()],
+  plugins: [blogSyncPlugin(), runScriptsPlugin(), copyBlogPlugin()],
   publicDir: 'public',
   build: {
     rollupOptions: {
