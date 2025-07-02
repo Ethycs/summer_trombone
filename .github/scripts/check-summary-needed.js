@@ -26,11 +26,15 @@ for (const file of Object.values(manifest.files)) {
     }
 }
 
+// Output for GitHub Actions
+if (process.env.GITHUB_OUTPUT) {
+    fs.appendFileSync(process.env.GITHUB_OUTPUT, `needed=${needsSummarization}\n`);
+}
+
 if (needsSummarization) {
-    console.log('::set-output name=needed::true');
+    console.log('Files need summarization');
     process.exit(0);
 } else {
-    console.log('No files need summarization');
-    console.log('::set-output name=needed::false');
+    console.log('No files need summarization - skipping model load');
     process.exit(0);
 }

@@ -34,9 +34,14 @@ jobs:
         id: generate_manifest
         run: node .github/scripts/generate-manifest.js
         
+      - name: Check if summaries needed
+        id: check_summaries
+        run: node .github/scripts/check-summary-needed.js
+        
       - name: Generate summaries for changed files
+        if: steps.check_summaries.outputs.needed == 'true'
         run: |
-          echo "Checking for files that need new summaries..."
+          echo "Files need new summaries, loading summarization model..."
           node .github/scripts/generate-summaries.mjs
 
       - name: Commit and push manifest
