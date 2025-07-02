@@ -92,8 +92,9 @@ class ReaderApp {
         const backButton = document.querySelector('.reader-back-button');
         backButton.addEventListener('click', (e) => {
             e.preventDefault();
-            // Go back to main page in academic mode
-            window.location.href = '/?mode=academic';
+            // Go back to main page in academic mode with base path
+            const basePath = import.meta.env.BASE_URL;
+            window.location.href = `${basePath}?mode=academic`;
         });
     }
     

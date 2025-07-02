@@ -150,7 +150,8 @@ export class AcademicModeView {
     
     openInUnifiedViewer(path, newTab = false) {
         // Navigate to the reader page with the article path
-        const readerUrl = `/reader.html?path=${encodeURIComponent(path)}`;
+        const basePath = import.meta.env.BASE_URL;
+        const readerUrl = `${basePath}reader.html?path=${encodeURIComponent(path)}`;
         
         if (newTab) {
             window.open(readerUrl, '_blank');
