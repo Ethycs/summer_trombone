@@ -95,7 +95,10 @@ class FileSystemSync {
                 this.addFile(path, {
                     content,
                     created: meta.created || null,
-                    modified: meta.modified || null
+                    modified: meta.modified || null,
+                    summary: meta.summary || null,
+                    title: meta.title || null,
+                    type: meta.type || null
                 });
             });
         });

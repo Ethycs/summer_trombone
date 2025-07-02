@@ -125,6 +125,11 @@ export class TerminalContentLoader {
                 // Get metadata if available
                 const metadata = this.metadata[path] || {};
                 
+                // Extract summary text from object if needed
+                const summaryText = (metadata?.summary?.text || metadata?.summary) || 
+                                  (file?.summary?.text || file?.summary) || 
+                                  this.generateDefaultSummary(type, filename);
+                
                 return {
                     path,
                     filename,
@@ -133,7 +138,7 @@ export class TerminalContentLoader {
                     title: metadata?.title || file?.title || this.extractTitleFromFilename(filename),
                     date: metadata?.modified || file?.modified,
                     created: metadata?.created || file?.created,
-                    summary: metadata?.summary || file?.summary || this.generateDefaultSummary(type, filename),
+                    summary: summaryText,
                     content: file?.content || null // Content from FileSystemSync
                 };
             })
