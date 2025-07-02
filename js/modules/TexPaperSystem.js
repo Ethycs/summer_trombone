@@ -20,12 +20,46 @@ export class TexPaperSystem {
         this.terminalEffects = terminalEffects;
         this.articles = [];
         this.currentArticle = null;
+        
+        // Create worker once, like MarkdownArticleSystem does
+        try {
+            this.worker = new Worker(new URL('./TexParser.worker.js', import.meta.url), { type: 'module' });
+            this.setupWorker();
+        } catch (error) {
+            console.warn('[TexPaperSystem] Failed to create worker:', error);
+            this.worker = null;
+        }
     }
 
     async init() {
         this.setupEventListeners();
         this.fs.watch((event, data) => this.handleFilesystemChange(event, data));
         // Initial load is handled by the watcher via 'scan-complete'
+    }
+    
+    setupWorker() {
+        if (!this.worker) return;
+        
+        // Store pending messages
+        this.messageHandlers = new Map();
+        
+        this.worker.onmessage = ({ data }) => {
+            const { id, html } = data;
+            const handler = this.messageHandlers.get(id);
+            if (handler) {
+                handler(html);
+                this.messageHandlers.delete(id);
+            }
+        };
+        
+        this.worker.onerror = (error) => {
+            console.error('[TexPaperSystem] Worker error:', error);
+            // Clear all pending handlers
+            for (const handler of this.messageHandlers.values()) {
+                handler(null);
+            }
+            this.messageHandlers.clear();
+        };
     }
 
     handleFilesystemChange(event, data) {
@@ -204,23 +238,32 @@ export class TexPaperSystem {
         }
     }
 
-    parseTexInWorker(texContent) {
-        return new Promise((resolve, reject) => {
-            const workerUrl = new URL('./TexParser.worker.js', import.meta.url);
-            const worker = new Worker(workerUrl, { type: 'module' });
-
-            worker.onmessage = (e) => {
-                resolve(e.data);
-                worker.terminate();
-            };
-
-            worker.onerror = (e) => {
-                reject(new Error(`Worker error: ${e.message}`));
-                worker.terminate();
-            };
-
-            worker.postMessage(texContent);
-        });
+    async parseTexInWorker(texContent) {
+        if (this.worker) {
+            // Use the persistent worker
+            return new Promise((resolve) => {
+                const id = crypto.randomUUID();
+                this.messageHandlers.set(id, (html) => {
+                    if (html) {
+                        resolve(html);
+                    } else {
+                        // Worker failed, use fallback
+                        this.parseTexFallback(texContent).then(resolve);
+                    }
+                });
+                this.worker.postMessage({ id, texContent });
+            });
+        } else {
+            // No worker available, use fallback
+            return this.parseTexFallback(texContent);
+        }
+    }
+    
+    async parseTexFallback(texContent) {
+        console.log('[TexPaperSystem] Using fallback TeX parser');
+        const { TexParser } = await import('./TexParser.js');
+        const parser = new TexParser();
+        return parser.parse(texContent);
     }
 
     async renderMath() {

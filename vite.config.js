@@ -19,13 +19,10 @@ export default defineConfig({
     copyPublicDir: true
   },
   worker: {
-    format: 'es',
-    rollupOptions: {
-      output: {
-        // Ensure workers are emitted as separate files, not data URLs
-        inlineDynamicImports: false
-      }
-    }
+    format: 'es'
+  },
+  optimizeDeps: {
+    exclude: ['./js/modules/TexParser.worker.js', './js/modules/md.worker.js']
   },
   server: {
     headers: {

@@ -153,20 +153,23 @@ class FileSystemSync {
             const response = await fetch(basePath + 'system/filesystem.json?t=' + new Date().getTime());
             if (!response.ok) return;
             const manifest = await response.json();
-            const newFiles = new Set(manifest.files);
+            
+            // Get file paths from the manifest object
+            const newFilePaths = Object.values(manifest.files).map(f => f.path);
+            const newFiles = new Set(newFilePaths);
             const oldFiles = new Set(this.filesystem.keys());
 
             // Find added files
-            for (const file of newFiles) {
-                if (!oldFiles.has(file)) {
-                    this.handleFileAdded(file);
+            for (const filePath of newFiles) {
+                if (!oldFiles.has(filePath)) {
+                    this.handleFileAdded(filePath);
                 }
             }
 
             // Find removed files
-            for (const file of oldFiles) {
-                if (!newFiles.has(file)) {
-                    this.handleFileRemoved(file);
+            for (const filePath of oldFiles) {
+                if (!newFiles.has(filePath)) {
+                    this.handleFileRemoved(filePath);
                 }
             }
         } catch (error) {
