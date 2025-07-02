@@ -105,7 +105,8 @@ class FileSystemSync {
 
     async scanWithManifest() {
         try {
-            const response = await fetch('/filesystem.json?t=' + new Date().getTime());
+            const basePath = import.meta.env.BASE_URL;
+            const response = await fetch(basePath + 'system/filesystem.json?t=' + new Date().getTime());
             if (!response.ok) throw new Error('Failed to fetch filesystem manifest');
             const manifest = await response.json();
 
@@ -139,7 +140,8 @@ class FileSystemSync {
 
     async checkForUpdates() {
         try {
-            const response = await fetch('/filesystem.json?t=' + new Date().getTime());
+            const basePath = import.meta.env.BASE_URL;
+            const response = await fetch(basePath + 'system/filesystem.json?t=' + new Date().getTime());
             if (!response.ok) return;
             const manifest = await response.json();
             const newFiles = new Set(manifest.files);
@@ -193,7 +195,10 @@ class FileSystemSync {
     }
 
     async fetchFileContent(path) {
-        const response = await fetch(path + '?t=' + new Date().getTime());
+        // Handle base path for GitHub Pages - import.meta.env.BASE_URL includes trailing slash
+        const basePath = import.meta.env.BASE_URL;
+        const fullPath = basePath + path.replace(/^\//, '');
+        const response = await fetch(fullPath + '?t=' + new Date().getTime());
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         return await response.text();
     }
