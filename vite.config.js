@@ -30,7 +30,8 @@ export default defineConfig(({ command }) => ({
     rollupOptions: {
       input: {
         main: resolve(__dirname, 'index.html'),
-        reader: resolve(__dirname, 'reader.html')
+        reader: resolve(__dirname, 'reader.html'),
+        radar: resolve(__dirname, 'radar/index.html')
       }
     },
     // Copy static files
