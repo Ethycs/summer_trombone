@@ -8,6 +8,7 @@ import {
     sitePathToHref,
     slugifyTitle
 } from './js/modules/contentMetadata.js';
+import { TexParser } from './js/modules/TexParser.js';
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 
@@ -51,6 +52,22 @@ for (const source of sources) {
 const paperContent = await readFile(path.join(root, 'blog/papers/premium_for_that.tex'), 'utf8');
 const paperMetadata = extractContentMetadata('/blog/papers/premium_for_that.tex', paperContent);
 assert.match(paperMetadata.description, /^While experts debate whether P\(doom\) is 1% or 10%/);
+
+const paperHtml = new TexParser().parse(paperContent);
+const invalidParagraphBlock = /<p>(?:(?!<\/p>)[\s\S])*<(?:h[1-6]|div|ol|ul|table)\b/i;
+assert.doesNotMatch(paperHtml, invalidParagraphBlock, 'TeX block elements must not be nested in paragraphs');
+assert.equal((paperHtml.match(/<p>/g) || []).length, (paperHtml.match(/<\/p>/g) || []).length);
+assert.match(paperHtml, /class="citation">Grace et al\. \(2018\)<\/a>/);
+assert.ok(!paperHtml.includes('[grace2018ai]'), 'citations must use bibliography labels');
+assert.match(paperHtml, /motivation—avoiding claims payouts—to create/);
+assert.ok(!paperHtml.includes('---'), 'TeX em dashes must be rendered typographically');
+assert.match(paperHtml, /Keywords:<\/strong> Existential risk/);
+
+const homepageSource = await readFile(path.join(root, 'index.html'), 'utf8');
+const modeToggle = homepageSource.match(/<button id="mode-toggle"[\s\S]*?<\/button>/)?.[0];
+assert.ok(modeToggle, 'homepage must include the mode toggle');
+assert.doesNotMatch(modeToggle, /<pre\b/, 'the mode-toggle button must contain phrasing content only');
+assert.match(modeToggle, /aria-label="Toggle view mode"/);
 
 if (process.argv.includes('--dist')) {
     const requiredFiles = [

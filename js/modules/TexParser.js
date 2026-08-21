@@ -13,6 +13,7 @@ export class TexParser {
     constructor() {
         this.mathStore = {};
         this.mathCounter = 0;
+        this.citationLabels = {};
         this.errors = [];
     }
 
@@ -20,6 +21,7 @@ export class TexParser {
         // Reset for each parse
         this.mathStore = {};
         this.mathCounter = 0;
+        this.citationLabels = {};
         this.errors = [];
 
         // Check if texContent is valid
@@ -27,6 +29,8 @@ export class TexParser {
             console.error('[TexParser] Invalid input: texContent is', typeof texContent, texContent);
             return '<div class="error-message">No content to parse</div>';
         }
+
+        this.citationLabels = this.collectCitationLabels(texContent);
 
         try {
             const titleMatch = texContent.match(/\\title\{([^}]+)\}/);
@@ -80,6 +84,22 @@ export class TexParser {
             this.logError('parse', error);
             return '<div class="tex-error">Error parsing TeX content</div>';
         }
+    }
+
+    collectCitationLabels(texContent) {
+        const labels = {};
+        const bibliographyItem = /\\bibitem(?:\[([^\]]+)\])?\{([^}]+)\}/g;
+
+        for (const match of texContent.matchAll(bibliographyItem)) {
+            const [, optionalLabel, key] = match;
+            labels[key.trim()] = (optionalLabel || key)
+                .replace(/~/g, ' ')
+                .replace(/\s*\((\d{4}[a-z]?)\)/gi, ' ($1)')
+                .replace(/\s+/g, ' ')
+                .trim();
+        }
+
+        return labels;
     }
 
     processSection(section) {
@@ -367,36 +387,52 @@ export class TexParser {
 
     parseParagraphs(text) {
         try {
-            const paragraphs = text.split(/\n\s*\n/);
             let html = '';
-            
-            for (let para of paragraphs) {
-                para = para.trim();
-                if (!para) continue;
+            let blockDepth = 0;
+            let inlineLines = [];
+            const blockTagPattern = /<\/?(?:h[1-4]|div|ol|ul|table)\b[^>]*>/gi;
+            const startsBlock = /^<(?:h[1-4]|div|ol|ul|table)\b/i;
+            const isDisplayMath = /^__DISPLAY_MATH_\d+__$/;
 
-                if (para.startsWith('__DISPLAY_MATH_')) {
-                    html += para + '\n';
+            const flushParagraph = () => {
+                if (inlineLines.length === 0) return;
+                html += `<p>${inlineLines.join(' ')}</p>\n`;
+                inlineLines = [];
+            };
+
+            const blockDepthDelta = line => {
+                let delta = 0;
+                for (const tag of line.matchAll(blockTagPattern)) {
+                    delta += tag[0].startsWith('</') ? -1 : 1;
+                }
+                return delta;
+            };
+
+            for (const rawLine of text.split(/\r?\n/)) {
+                const line = rawLine.trim();
+
+                if (!line) {
+                    if (blockDepth === 0) flushParagraph();
                     continue;
                 }
 
-                const lines = para.split('\n');
-                const processedLines = lines.map(line => {
-                    if (line.match(/^<(h[1-4]|div|ol|ul|table|li)/)) {
-                        return line; // Don't process lines that are already HTML blocks
-                    }
-                    return this.processTexText(line);
-                });
-                
-                const blockContent = processedLines.join('');
-
-                // Wrap in <p> only if it's not already a block element.
-                if (blockContent.match(/^<(h[1-4]|div|ol|ul|table)/)) {
-                    html += blockContent + '\n';
-                } else {
-                    html += `<p>${blockContent}</p>\n`;
+                if (blockDepth > 0) {
+                    html += `${line}\n`;
+                    blockDepth = Math.max(0, blockDepth + blockDepthDelta(line));
+                    continue;
                 }
+
+                if (startsBlock.test(line) || isDisplayMath.test(line)) {
+                    flushParagraph();
+                    html += `${line}\n`;
+                    blockDepth = Math.max(0, blockDepthDelta(line));
+                    continue;
+                }
+
+                inlineLines.push(this.processTexText(line));
             }
-            
+
+            flushParagraph();
             return html.trim();
         } catch (error) {
             this.logError('parseParagraphs', error);
@@ -407,39 +443,68 @@ export class TexParser {
   /* ----------------------------------------------------------------
    * 1.  N E W   M E T H O D  –   balanced–brace inline scanner
    * ---------------------------------------------------------------- */
-  parseInline(src) {
-    let i = 0, out = '';
+    parseInline(src) {
+        let cursor = 0;
+        let output = '';
 
-    const eatBlock = () => {           // nested-brace helper
-      let depth = 0, buf = '';
-      while (i < src.length) {
-        const ch = src[i++];
-        if (ch === '\\') { buf += ch + (src[i] ?? ''); i++;          }
-        else if (ch === '{') { depth++; buf += ch + eatBlock();      }
-        else if (ch === '}') { if (depth-- === 0) return buf; buf+=ch}
-        else               { buf += ch;                              }
-      }
-      throw new Error('Unbalanced brace in inline command');
-    };
+        const readBalancedGroup = start => {
+            let depth = 1;
+            let index = start;
+            let content = '';
 
-    while (i < src.length) {
-      if (src[i] === '\\') {
-        const m = /^\\([A-Za-z]+)\s*\{/.exec(src.slice(i));
-        if (m && INLINE_CMD[m[1]]) {
-          const cmd = m[1];
-          i += m[0].length;                     // skip “\cmd{”
-          const inner = eatBlock();
-          out += INLINE_CMD[cmd][0]
-               + this.parseInline(inner)        // recursion!
-               + INLINE_CMD[cmd][1];
-          i++;                                  // past the closing '}'
-          continue;
+            while (index < src.length) {
+                const character = src[index];
+
+                if (character === '\\' && index + 1 < src.length) {
+                    content += character + src[index + 1];
+                    index += 2;
+                    continue;
+                }
+
+                if (character === '{') {
+                    depth += 1;
+                    content += character;
+                    index += 1;
+                    continue;
+                }
+
+                if (character === '}') {
+                    depth -= 1;
+                    if (depth === 0) {
+                        return { content, end: index + 1 };
+                    }
+                    content += character;
+                    index += 1;
+                    continue;
+                }
+
+                content += character;
+                index += 1;
+            }
+
+            throw new Error('Unbalanced brace in inline command');
+        };
+
+        while (cursor < src.length) {
+            if (src[cursor] === '\\') {
+                const commandMatch = /^\\([A-Za-z]+)\s*\{/.exec(src.slice(cursor));
+                if (commandMatch && INLINE_CMD[commandMatch[1]]) {
+                    const command = commandMatch[1];
+                    const group = readBalancedGroup(cursor + commandMatch[0].length);
+                    output += INLINE_CMD[command][0]
+                        + this.parseInline(group.content)
+                        + INLINE_CMD[command][1];
+                    cursor = group.end;
+                    continue;
+                }
+            }
+
+            output += src[cursor];
+            cursor += 1;
         }
-      }
-      out += src[i++];
+
+        return output;
     }
-    return out;
-  }
 
   /* ----------------------------------------------------------------
    * 2.  replace the old “step 2” of processTexText
@@ -475,24 +540,27 @@ processTexText(text) {
   /* =========================================================
    * 3.  Citations  (\citep, \citet)
    * ======================================================= */
-  const citeToLinks = (keys, bare = false) =>
+  const citeToLinks = keys =>
     keys.split(',').map(k => k.trim())
-        .map(k => `<a href="#ref-${k}" class="citation">${bare ? k : `[${k}]`}</a>`)
+        .map(k => `<a href="#ref-${k}" class="citation">${this.citationLabels[k] || k}</a>`)
         .join(', ');
 
-  // \citep{key1,key2}  →  ([key1], [key2])
+  // \citep{key1,key2}  →  (Author (year), Author (year))
   text = text.replace(/\\citep\{([^}]+)\}/g,
                       (_, keys) => `(${citeToLinks(keys)})`);
 
-  // \citet{key}        →  key
+  // \citet{key}        →  Author (year)
   text = text.replace(/\\citet\{([^}]+)\}/g,
-                      (_, keys) => citeToLinks(keys, /* bare = */ true));
+                      (_, keys) => citeToLinks(keys));
 
   /* =========================================================
    * 4.  Line-break helpers
    * ======================================================= */
   text = text.replace(/\\\\/g, '<br>');
   text = text.replace(/\\newblock/g, ' ');
+  text = text.replace(/---/g, '—');
+  text = text.replace(/--/g, '–');
+  text = text.replace(/~/g, '&nbsp;');
 
   /* =========================================================
    * 5.  Escaped specials – leave *last* so earlier markup

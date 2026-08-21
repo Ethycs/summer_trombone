@@ -14,6 +14,7 @@ The Vite build emits canonical, server-readable HTML for every public Markdown p
 3. Canonical route generation comes only from `js/modules/contentMetadata.js`.
 4. Placeholder authorship is omitted rather than guessed.
 5. A production build fails if homepage publication markers are missing or output would escape `dist/`.
+6. Generated HTML remains structurally valid: TeX block elements are never wrapped in paragraphs, and interactive controls contain only permitted phrasing content.
 
 ## Generated artifacts
 
@@ -73,4 +74,4 @@ Changed-source summaries may temporarily retain their previous text with a misma
 
 ## Verification
 
-Run `npm run test:publication` from the repository root to test metadata, perform the custom-domain production build, and validate canonical pages, descriptions, JSON-LD, single-H1 semantics, indexes, sitemap uniqueness, robots policy, homepage links, placeholder removal, and `articles.json` mappings.
+Run `npm run test:publication` from the repository root to test metadata, perform the custom-domain production build, and validate canonical pages, descriptions, JSON-LD, single-H1 semantics, indexes, sitemap uniqueness, robots policy, homepage links, placeholder removal, `articles.json` mappings, TeX block/paragraph boundaries, bibliography-backed citation labels, TeX dash typography, and mode-toggle semantics.
