@@ -3,6 +3,7 @@ import path from 'path';
 import { execSync } from 'child_process';
 import { fileURLToPath } from 'url';
 import crypto from 'crypto';
+import { extractContentMetadata } from '../../js/modules/contentMetadata.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -79,6 +80,8 @@ subdirectories.forEach(subdir => {
             const fileId = getFileId(fullFilePath);
             const virtualPath = `/${contentRoot}/${subdir}/${file}`;
             const currentHash = getFileHash(fullFilePath);
+            const content = fs.readFileSync(fullFilePath, 'utf8');
+            const publication = extractContentMetadata(virtualPath, content);
 
             // Check existing entry
             const existingEntry = existingManifest.files && existingManifest.files[fileId];
@@ -90,7 +93,13 @@ subdirectories.forEach(subdir => {
                 type: file.endsWith('.tex') ? 'TeX Article' : 'Markdown Post',
                 created: existingEntry ? existingEntry.created : getGitFirstCommitDate(fullFilePath),
                 modified: contentChanged ? new Date().toISOString() : (existingEntry ? existingEntry.modified : getGitLastCommitDate(fullFilePath)),
-                contentHash: currentHash
+                contentHash: currentHash,
+                title: publication.title,
+                description: publication.description,
+                canonicalPath: publication.canonicalPath,
+                schemaType: publication.schemaType,
+                ...(publication.author ? { author: publication.author } : {}),
+                ...(publication.datePublished ? { datePublished: publication.datePublished } : {})
             };
             
             // Preserve summary if content hasn't changed

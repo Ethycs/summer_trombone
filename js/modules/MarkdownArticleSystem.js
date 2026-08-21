@@ -1,4 +1,5 @@
 import { FileSystemSync } from './FileSystemSync.js';
+import { escapeHtml, sitePathToHref } from './contentMetadata.js';
 
 /**
  * Markdown Article System - Handles loading and rendering of Markdown articles
@@ -68,7 +69,9 @@ export class MarkdownArticleSystem {
                 filename,
                 content: entry.content.content,
                 created: entry.content.created,
-                modified: entry.content.modified
+                modified: entry.content.modified,
+                title: entry.content.title || filename.replace('.md', ''),
+                canonicalPath: entry.content.canonicalPath
             };
         });
         this.renderArticleList();
@@ -94,9 +97,10 @@ export class MarkdownArticleSystem {
             if (errorDiv) errorDiv.remove();
         }
 
-        const articleHtml = this.articles.map(({ filename }) => {
+        const articleHtml = this.articles.map(({ filename, title, canonicalPath }) => {
             const isActive = filename === activeArticle ? 'active' : '';
-            return `<div class="article-item ${isActive}" data-article="${filename}">${filename.replace('.md', '')}</div>`;
+            const href = sitePathToHref(canonicalPath, import.meta.env.BASE_URL);
+            return `<a href="${escapeHtml(href)}" class="article-item ${isActive}" data-article="${escapeHtml(filename)}">${escapeHtml(title)}</a>`;
         }).join('');
         
         this.articleListElement.insertAdjacentHTML('beforeend', articleHtml);
@@ -104,12 +108,14 @@ export class MarkdownArticleSystem {
 
     setupEventListeners() {
         this.articleListElement.addEventListener('click', (e) => {
-            if (e.target.classList.contains('article-item')) {
-                this.loadArticle(e.target.dataset.article);
-                
+            const articleLink = e.target.closest('.article-item');
+            if (articleLink) {
+                e.preventDefault();
+                this.loadArticle(articleLink.dataset.article);
+
                 this.articleListElement.querySelectorAll('.article-item').forEach(item =>
                     item.classList.remove('active'));
-                e.target.classList.add('active');
+                articleLink.classList.add('active');
             }
         });
 

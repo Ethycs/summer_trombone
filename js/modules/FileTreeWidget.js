@@ -3,6 +3,11 @@
  */
 
 import { FileSystemSync } from './FileSystemSync.js';
+import {
+    escapeHtml,
+    extractContentMetadata,
+    sitePathToHref
+} from './contentMetadata.js';
 
 export class FileTreeWidget {
     constructor(containerElement) {
@@ -77,12 +82,15 @@ export class FileTreeWidget {
             const dir = entry.path.split('/').slice(-2, -1)[0];
             
             if (tree.children[dir]) {
+                const publication = extractContentMetadata(entry.path, entry.content.content || '');
                 tree.children[dir].children[filename] = {
                     name: filename,
                     type: 'file',
                     path: entry.path,
                     created: entry.content.created,
-                    modified: entry.content.modified
+                    modified: entry.content.modified,
+                    title: entry.content.title || publication.title,
+                    canonicalPath: entry.content.canonicalPath || publication.canonicalPath
                 };
             }
         }
@@ -130,18 +138,20 @@ export class FileTreeWidget {
             
             const created = node.created ? new Date(node.created).toLocaleDateString() : 'N/A';
             const modified = node.modified ? new Date(node.modified).toLocaleDateString() : 'N/A';
+            const href = sitePathToHref(node.canonicalPath, import.meta.env.BASE_URL);
 
             html += `
-                <div class="tree-node file" 
-                     data-path="${path}" 
+                <a href="${escapeHtml(href)}"
+                     class="tree-node file"
+                     data-path="${escapeHtml(path)}"
                      data-type="file"
                      style="padding-left: ${level * 20}px">
                     <span class="tree-arrow"> </span>
                     <span class="tree-icon">${icon}</span>
-                    <span class="tree-name">${node.name}</span>
+                    <span class="tree-name">${escapeHtml(node.title || node.name)}</span>
                     <span class="tree-date">${created}</span>
                     <span class="tree-date">${modified}</span>
-                </div>
+                </a>
             `;
         }
         
@@ -166,6 +176,7 @@ export class FileTreeWidget {
                 this.render();
             } else {
                 // Open file
+                e.preventDefault();
                 this.openFile(path);
             }
         });

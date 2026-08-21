@@ -3,6 +3,11 @@
  */
 
 import { FileSystemSync } from './FileSystemSync.js';
+import {
+    escapeHtml,
+    extractContentMetadata,
+    sitePathToHref
+} from './contentMetadata.js';
 
 export class TerminalContentLoader {
     constructor(containerElement, fileSystemSync) {
@@ -124,10 +129,12 @@ export class TerminalContentLoader {
                 
                 // Get metadata if available
                 const metadata = this.metadata[path] || {};
+                const publication = extractContentMetadata(path, file?.content || '');
                 
                 // Extract summary text from object if needed
-                const summaryText = (metadata?.summary?.text || metadata?.summary) || 
-                                  (file?.summary?.text || file?.summary) || 
+                const summaryText = (metadata?.summary?.text || metadata?.summary) ||
+                                  (file?.summary?.text || file?.summary) ||
+                                  metadata?.description || file?.description || publication.description ||
                                   this.generateDefaultSummary(type, filename);
                 
                 return {
@@ -135,7 +142,8 @@ export class TerminalContentLoader {
                     filename,
                     type,
                     ext,
-                    title: metadata?.title || file?.title || this.extractTitleFromFilename(filename),
+                    title: metadata?.title || file?.title || publication.title || this.extractTitleFromFilename(filename),
+                    canonicalPath: metadata?.canonicalPath || file?.canonicalPath || publication.canonicalPath,
                     date: metadata?.modified || file?.modified,
                     created: metadata?.created || file?.created,
                     summary: summaryText,
@@ -164,6 +172,10 @@ export class TerminalContentLoader {
             return 'Academic paper exploring advanced concepts in AI safety and alignment.';
         }
         return 'Thoughts on technology, AI, and the future of computing.';
+    }
+
+    getContentHref(post) {
+        return sitePathToHref(post.canonicalPath, import.meta.env.BASE_URL);
     }
     
     render() {
@@ -214,19 +226,21 @@ export class TerminalContentLoader {
         const formattedDate = this.formatDate(post.date);
         const typeLabel = post.type === 'paper' ? '[PAPER]' : '[POST]';
         const typeClass = post.type === 'paper' ? 'paper' : 'post';
+        const href = this.getContentHref(post);
+        const dateAttribute = post.date ? ` datetime="${escapeHtml(post.date)}"` : '';
         
         return `
-            <article class="terminal-post ${typeClass}" data-path="${post.path}">
+            <article class="terminal-post ${typeClass}" data-path="${escapeHtml(post.path)}">
                 <header class="post-header">
                     <span class="post-type">${typeLabel}</span>
-                    <h2 class="post-title">${post.title}</h2>
-                    <time class="post-date" datetime="${post.date}">${formattedDate}</time>
+                    <h2 class="post-title">${escapeHtml(post.title)}</h2>
+                    <time class="post-date"${dateAttribute}>${escapeHtml(formattedDate)}</time>
                 </header>
                 <div class="post-summary">
-                    <p>${post.summary}</p>
+                    <p>${escapeHtml(post.summary)}</p>
                 </div>
                 <footer class="post-footer">
-                    <a href="#" class="continue-reading" data-path="${post.path}">
+                    <a href="${escapeHtml(href)}" class="continue-reading" data-path="${escapeHtml(post.path)}">
                         Continue reading →
                     </a>
                 </footer>
@@ -266,9 +280,10 @@ export class TerminalContentLoader {
     attachListeners() {
         this.container.addEventListener('click', (e) => {
             // Handle "Continue reading" clicks
-            if (e.target.classList.contains('continue-reading')) {
+            const continueLink = e.target.closest('.continue-reading');
+            if (continueLink) {
                 e.preventDefault();
-                const path = e.target.dataset.path;
+                const path = continueLink.dataset.path;
                 this.openFile(path);
             }
             
@@ -377,16 +392,18 @@ export class TerminalContentLoader {
         const formattedDate = this.formatDate(post.date);
         const typeLabel = post.type === 'paper' ? '[PAPER]' : '[POST]';
         const typeClass = post.type === 'paper' ? 'paper' : 'post';
+        const href = this.getContentHref(post);
+        const dateAttribute = post.date ? ` datetime="${escapeHtml(post.date)}"` : '';
         
         return `
-            <article class="terminal-post academic-post ${typeClass}" data-path="${post.path}">
+            <article class="terminal-post academic-post ${typeClass}" data-path="${escapeHtml(post.path)}">
                 <header class="post-header">
                     <span class="post-type">${typeLabel}</span>
-                    <h3 class="post-title">${post.title}</h3>
-                    <time class="post-date" datetime="${post.date}">${formattedDate}</time>
+                    <h3 class="post-title"><a href="${escapeHtml(href)}" class="continue-reading" data-path="${escapeHtml(post.path)}">${escapeHtml(post.title)}</a></h3>
+                    <time class="post-date"${dateAttribute}>${escapeHtml(formattedDate)}</time>
                 </header>
                 <div class="post-summary">
-                    <p>${post.summary}</p>
+                    <p>${escapeHtml(post.summary)}</p>
                 </div>
             </article>
         `;

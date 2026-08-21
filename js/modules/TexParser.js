@@ -224,9 +224,9 @@ export class TexParser {
 
     parseHeadings(text) {
         try {
-            text = text.replace(/\\section\{([^}]+)\}/g, '<h1>$1</h1>');
-            text = text.replace(/\\subsection\{([^}]+)\}/g, '<h2>$1</h2>');
-            text = text.replace(/\\subsubsection\{([^}]+)\}/g, '<h3>$1</h3>');
+            text = text.replace(/\\section\{([^}]+)\}/g, '<h2>$1</h2>');
+            text = text.replace(/\\subsection\{([^}]+)\}/g, '<h3>$1</h3>');
+            text = text.replace(/\\subsubsection\{([^}]+)\}/g, '<h4>$1</h4>');
             text = text.replace(/\\paragraph\{([^}]+)\}/g, '<h4>$1</h4>');
             return text;
         } catch (error) {

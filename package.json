@@ -27,8 +27,10 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "build:custom-domain": "VITE_CUSTOM_DOMAIN=true vite build",
+    "build:custom-domain": "vite build --base=/",
     "build:github-pages": "vite build",
-    "dev:scripts": "vite -- --run-scripts"
+    "dev:scripts": "vite -- --run-scripts",
+    "test": "node test_publication.mjs",
+    "test:publication": "npm run build:custom-domain && node test_publication.mjs --dist"
   }
 }

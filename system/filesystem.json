@@ -5,8 +5,12 @@
       "path": "/blog/papers/premium_for_that.tex",
       "type": "TeX Article",
       "created": "2025-06-25T16:50:26.000Z",
-      "modified": "2025-07-02T01:33:49.134Z",
-      "contentHash": "aab6f3d139202bb898b5845936a387bd834a3f4214e4a3d1d0117e71dc8de487",
+      "modified": "2026-08-20T23:27:47.783Z",
+      "contentHash": "e5af669de8f892b31e1f41333a6b25ad702dda84432009b0d30d00ee0c30c477",
+      "title": "AI Doom: There's a Premium for That",
+      "description": "While experts debate whether P(doom) is 1% or 10%, insurance markets ask a different question: What's the premium? We propose the first comprehensive…",
+      "canonicalPath": "/papers/ai-doom-theres-a-premium-for-that/",
+      "schemaType": "ScholarlyArticle",
       "summary": {
         "text": " The paper argues that insurance requirements can align private incentives with civilizational survival while making AI doom prohibitively expensive to ignore. We propose the first comprehensive framework for translating AI existential risk into actuarial mechanisms, transforming abstract probability estimates into concrete economic",
         "modified": "2025-07-02T01:08:52.198Z",
@@ -20,6 +24,10 @@
       "created": "2025-12-24T03:06:03.000Z",
       "modified": "2025-12-24T03:06:24.913Z",
       "contentHash": "e7c6db8bc1599cd615f4a1933fa229e28f5164ccd0735b9980f2c37331ec377b",
+      "title": "Bayes Can’t Save You From Ignorance",
+      "description": "People sometimes talk about Bayesian modeling like it’s a kind of epistemic shield: start with a prior, update rationally, and you’ll avoid nasty surprises…",
+      "canonicalPath": "/articles/bayes-cant-save-you-from-ignorance/",
+      "schemaType": "Article",
       "summary": {
         "text": " Bayes is a bookkeeping rule, not a safety system, says John Sutter. Sutter: It doesn't protect you from the possibilities you already wrote down. He says it doesn't create missing mechanisms, it doesn’t",
         "modified": "2025-12-24T03:06:44.917Z",
@@ -31,8 +39,13 @@
       "path": "/blog/posts/Green Teaming.md",
       "type": "Markdown Post",
       "created": "2025-06-27T18:41:13.000Z",
-      "modified": "2025-07-02T01:33:49.143Z",
-      "contentHash": "8a9fe755d9c1f010d005d87670eb933ef212882bd77cb30082ca03d9ca50d65e",
+      "modified": "2026-08-20T23:27:47.786Z",
+      "contentHash": "a9a1ed6c6b26fbdcee0a4caff2c382f9e55edd493cedfa958f8b67086b0dfa94",
+      "title": "Green Teaming",
+      "description": "Traditional cybersecurity Red Teaming focuses on identifying minimalist pathways to system compromise. While invaluable, this approach is insufficient for…",
+      "canonicalPath": "/articles/green-teaming/",
+      "schemaType": "Article",
+      "datePublished": "2023-10-26",
       "summary": {
         "text": " The purpose of Green Teaming is not to cause harm, but to proactively discover, understand, and ultimately neutralize the upper bounds of AI-driven catastrophic potential.",
         "modified": "2025-07-02T01:09:06.775Z",
@@ -40,5 +53,5 @@
       }
     }
   },
-  "lastUpdated": "2026-05-24T06:03:28.994Z"
+  "lastUpdated": "2026-08-20T23:28:22.634Z"
 }

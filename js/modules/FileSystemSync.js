@@ -1,3 +1,5 @@
+import { extractContentMetadata } from './contentMetadata.js';
+
 /**
  * FileSystemSync.js
  *
@@ -92,12 +94,16 @@ class FileSystemSync {
         Object.values(files).forEach(items => {
             Object.entries(items).forEach(([path, content]) => {
                 const meta = metadata[path] || {};
+                const publication = extractContentMetadata(path, content);
                 this.addFile(path, {
                     content,
                     created: meta.created || null,
                     modified: meta.modified || null,
                     summary: meta.summary || null,
-                    title: meta.title || null,
+                    title: meta.title || publication.title,
+                    description: meta.description || publication.description,
+                    canonicalPath: meta.canonicalPath || publication.canonicalPath,
+                    schemaType: meta.schemaType || publication.schemaType,
                     type: meta.type || null
                 });
             });
@@ -117,12 +123,17 @@ class FileSystemSync {
             console.log('[FileSystemSync] Manifest loaded, files:', Object.keys(manifest.files).length);
             this.filesystem.clear();
             for (const file of Object.values(manifest.files)) {
+                const publication = extractContentMetadata(file.path, '');
+                const title = file.title || publication.title;
                 this.addFile(file.path, {
                     content: null,
                     created: file.created,
                     modified: file.modified,
                     summary: file.summary,
-                    title: file.title,
+                    title,
+                    description: file.description || publication.description,
+                    canonicalPath: file.canonicalPath || publication.canonicalPath,
+                    schemaType: file.schemaType || publication.schemaType,
                     type: file.type
                 });
             }
@@ -188,7 +199,13 @@ class FileSystemSync {
     async fetchAndAddFile(path) {
         try {
             const content = await this.fetchFileContent(path);
-            this.addFile(path, { content, created: new Date().toISOString(), modified: new Date().toISOString() });
+            const publication = extractContentMetadata(path, content);
+            this.addFile(path, {
+                content,
+                created: new Date().toISOString(),
+                modified: new Date().toISOString(),
+                ...publication
+            });
             this.notifyWatchers('file-added', path);
         } catch (error) {
             console.error(`[FileSystemSync] Failed to fetch and add file: ${path}`, error);
@@ -199,7 +216,8 @@ class FileSystemSync {
         try {
             const content = await this.fetchFileContent(path);
             const existing = this.filesystem.get(path) || {};
-            this.addFile(path, { ...existing, content, modified: new Date().toISOString() });
+            const publication = extractContentMetadata(path, content);
+            this.addFile(path, { ...existing, ...publication, content, modified: new Date().toISOString() });
             this.notifyWatchers('file-change', path);
         } catch (error) {
             console.error(`[FileSystemSync] Failed to fetch and update file: ${path}`, error);

@@ -5,6 +5,11 @@
 
 import { FileTreeWidget } from './FileTreeWidget.js';
 import { TerminalContentLoader } from './TerminalContentLoader.js';
+import {
+    escapeHtml,
+    extractContentMetadata,
+    sitePathToHref
+} from './contentMetadata.js';
 
 export class AcademicModeView {
     constructor(containerElement, fileSystemSync, terminalEffects) {
@@ -78,27 +83,26 @@ export class AcademicModeView {
     }
     
     createAcademicContentRenderer() {
-        const self = this;
-        const originalRender = this.contentLoader.render.bind(this.contentLoader);
-        
         // Add renderAcademicPost method to contentLoader
         this.contentLoader.renderAcademicPost = function(post) {
             const formattedDate = this.formatDate(post.date);
             const typeLabel = post.type === 'paper' ? '[PAPER]' : '[POST]';
             const typeClass = post.type === 'paper' ? 'paper' : 'post';
-            
+            const href = this.getContentHref(post);
+            const dateAttribute = post.date ? ` datetime="${escapeHtml(post.date)}"` : '';
+
             return `
-                <article class="terminal-post academic-post ${typeClass}" data-path="${post.path}">
+                <article class="terminal-post academic-post ${typeClass}" data-path="${escapeHtml(post.path)}">
                     <header class="post-header">
                         <span class="post-type">${typeLabel}</span>
-                        <h2 class="post-title">${post.title}</h2>
-                        <time class="post-date" datetime="${post.date}">${formattedDate}</time>
+                        <h2 class="post-title"><a href="${escapeHtml(href)}" class="continue-reading" data-path="${escapeHtml(post.path)}">${escapeHtml(post.title)}</a></h2>
+                        <time class="post-date"${dateAttribute}>${escapeHtml(formattedDate)}</time>
                     </header>
                     <div class="post-summary">
-                        <p>${post.summary}</p>
+                        <p>${escapeHtml(post.summary)}</p>
                     </div>
                     <footer class="post-footer">
-                        <a href="#" class="continue-reading" data-path="${post.path}">
+                        <a href="${escapeHtml(href)}" class="continue-reading" data-path="${escapeHtml(post.path)}">
                             Continue reading →
                         </a>
                     </footer>
@@ -131,17 +135,6 @@ export class AcademicModeView {
             this.openInUnifiedViewer(event.detail.path);
         });
         
-        // Middle-click handling for new tab
-        this.container.addEventListener('mousedown', (event) => {
-            if (event.button === 1) { // Middle button
-                const link = event.target.closest('.continue-reading, .tree-node.file');
-                if (link) {
-                    event.preventDefault();
-                    const path = link.dataset.path;
-                    this.openInUnifiedViewer(path, true);
-                }
-            }
-        });
     }
     
     attachGlobalListeners() {
@@ -149,14 +142,19 @@ export class AcademicModeView {
     }
     
     openInUnifiedViewer(path, newTab = false) {
-        // Navigate to the reader page with the article path
         const basePath = import.meta.env.BASE_URL;
+        const entry = this.fs.get(path) || {};
+        const publication = extractContentMetadata(path, entry.content || '');
+        const canonicalPath = entry.canonicalPath || publication.canonicalPath;
         const readerUrl = `${basePath}reader.html?path=${encodeURIComponent(path)}`;
-        
+        const targetUrl = import.meta.env.DEV
+            ? readerUrl
+            : sitePathToHref(canonicalPath, basePath);
+
         if (newTab) {
-            window.open(readerUrl, '_blank');
+            window.open(targetUrl, '_blank');
         } else {
-            window.location.href = readerUrl;
+            window.location.href = targetUrl;
         }
     }
     

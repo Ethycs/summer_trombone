@@ -33,6 +33,9 @@ jobs:
       - name: Generate manifest
         id: generate_manifest
         run: node .github/scripts/generate-manifest.js
+
+      - name: Verify publication metadata
+        run: npm test
         
       - name: Check if summaries needed
         id: check_summaries
@@ -85,6 +88,9 @@ jobs:
             ls -la dist/
             exit 1
           fi
+
+      - name: Verify static publication layer
+        run: node test_publication.mjs --dist
 
       - name: Setup Pages
         uses: actions/configure-pages@v4

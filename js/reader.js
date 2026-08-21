@@ -5,6 +5,7 @@
 import { FileSystemSync } from './modules/FileSystemSync.js';
 import { MarkdownArticleSystem } from './modules/MarkdownArticleSystem.js';
 import { TexPaperSystem } from './modules/TexPaperSystem.js';
+import { sitePathToHref } from './modules/contentMetadata.js';
 
 class ReaderApp {
     constructor() {
@@ -35,6 +36,10 @@ class ReaderApp {
             this.showError('No article path provided');
             return;
         }
+
+        if (await this.redirectToCanonicalPage()) {
+            return;
+        }
         
         // Initialize the article systems
         await this.markdownSystem.init();
@@ -48,6 +53,27 @@ class ReaderApp {
         
         // Load the article
         await this.loadArticle();
+    }
+
+    async redirectToCanonicalPage() {
+        if (!import.meta.env.PROD) return false;
+
+        try {
+            const basePath = import.meta.env.BASE_URL;
+            const response = await fetch(`${basePath}articles.json`);
+            if (!response.ok) return false;
+
+            const articles = await response.json();
+            const article = articles[this.articlePath];
+            if (!article?.canonicalPath) return false;
+
+            const target = sitePathToHref(article.canonicalPath, basePath);
+            window.location.replace(target);
+            return true;
+        } catch (error) {
+            console.warn('[ReaderApp] Canonical redirect unavailable; using legacy reader.', error);
+            return false;
+        }
     }
     
     async waitForFilesystem() {

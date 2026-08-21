@@ -1,8 +1,9 @@
-**White Paper: Introducing Green Teaming – Maximizing Understanding of AI Catastrophic Potential for Enhanced Civilizational Resilience**
+# Green Teaming
+
+**Maximizing Understanding of AI Catastrophic Potential for Enhanced Civilizational Resilience**
 
 **Date:** October 26, 2023
 **Version:** 1.0
-**Authored By:** [Your Name/Group Here, or "AI Safety Futures Consortium"]
 
 **Abstract:**
 
