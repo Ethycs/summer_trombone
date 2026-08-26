@@ -1,4 +1,13 @@
 /**
+ * The original title-bar glyph controls.
+ *
+ * Every one of these must return to the desktop while focus mode is active.
+ * There the taskbar is hidden and this is the only visible window, so any
+ * control that merely hides it leaves a blank screen with no way to recover.
+ */
+export const WINDOW_CHROME_ACTIONS = ['_', '□', '×'];
+
+/**
  * Window Manager - Handles window dragging, resizing, and state management
  * Now with hardware-accelerated dragging for performance.
  */
@@ -80,10 +89,17 @@ export class WindowManager {
             return;
         }
 
-        // In focus mode this is the only visible window, so closing or
-        // un-maximizing it means returning to the desktop.
-        if (this.focusMode?.isActive() && (action === '×' || action === '□')) {
+        // In focus mode this is the only visible window and the taskbar is
+        // hidden, so every chrome control has to return to the desktop first -
+        // otherwise there is nothing left on screen and no way to recover.
+        if (this.focusMode?.isActive() && WINDOW_CHROME_ACTIONS.includes(action)) {
             this.focusMode.exit();
+
+            // Minimize still means "put this away", which is only meaningful
+            // once the desktop and its taskbar are back.
+            if (action === '_') {
+                this.minimizeWindow(windowElement);
+            }
             return;
         }
 

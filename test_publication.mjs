@@ -19,6 +19,7 @@ import {
     terminalPathFor
 } from './js/modules/DocumentRoute.js';
 import { ogImageNameFor, renderOgCardSvg, wrapText } from './og-card.js';
+import { WINDOW_CHROME_ACTIONS } from './js/modules/WindowManager.js';
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 
@@ -186,7 +187,34 @@ assert.match(paperHtml, /motivation—avoiding claims payouts—to create/);
 assert.ok(!paperHtml.includes('---'), 'TeX em dashes must be rendered typographically');
 assert.match(paperHtml, /Keywords:<\/strong> Existential risk/);
 
-const homepageSource = await readFile(path.join(root, 'index.html'), 'utf8');
+// --- Focus-mode escape hatches ---------------------------------------------
+
+// Focus mode hides the taskbar and every other window. A title-bar control
+// that is not routed back to the desktop therefore leaves a blank screen the
+// reader cannot recover from - which is exactly what an unguarded minimize did.
+const windowManagerSource = await readFile(path.join(root, 'js/modules/WindowManager.js'), 'utf8');
+const homepageMarkup = await readFile(path.join(root, 'index.html'), 'utf8');
+
+const glyphControls = new Set(
+    [...homepageMarkup.matchAll(/<div class="window-button">([^<]+)<\/div>/g)].map(match => match[1].trim())
+);
+assert.ok(glyphControls.size > 0, 'expected to find glyph window controls in the homepage');
+
+for (const glyph of glyphControls) {
+    assert.ok(
+        WINDOW_CHROME_ACTIONS.includes(glyph),
+        `window control "${glyph}" is not routed out of focus mode; it would strand the reader on a blank screen`
+    );
+}
+
+// The guard must consult the shared list rather than an inline glyph check.
+assert.match(
+    windowManagerSource,
+    /focusMode\?\.isActive\(\)\s*&&\s*WINDOW_CHROME_ACTIONS\.includes\(action\)/,
+    'the focus-mode guard must cover every chrome action via WINDOW_CHROME_ACTIONS'
+);
+
+const homepageSource = homepageMarkup;
 const modeToggle = homepageSource.match(/<button id="mode-toggle"[\s\S]*?<\/button>/)?.[0];
 assert.ok(modeToggle, 'homepage must include the mode toggle');
 assert.doesNotMatch(modeToggle, /<pre\b/, 'the mode-toggle button must contain phrasing content only');
