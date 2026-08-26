@@ -20,7 +20,16 @@ export class WindowManager {
             lastY: 0,
         };
         this.debug = debug;
+        // Handlers for data-action controls, e.g. 'copy-link'
+        this.actionHandlers = new Map();
+        // Set by main.js so close/maximize can leave focus mode instead of
+        // hiding the only visible window.
+        this.focusMode = null;
         if (this.debug) console.log('WindowManager: Initialized in debug mode.');
+    }
+
+    registerAction(name, handler) {
+        this.actionHandlers.set(name, handler);
     }
 
     init() {
@@ -55,13 +64,29 @@ export class WindowManager {
         controls.forEach(button => {
             button.addEventListener('click', (e) => {
                 e.stopPropagation();
-                this.handleWindowControl(button.textContent, windowElement);
+                // Prefer an explicit data-action; fall back to the glyph for the
+                // original _ / □ / × controls.
+                this.handleWindowControl(button.dataset.action || button.textContent, windowElement, button);
             });
         });
     }
 
-    handleWindowControl(action, windowElement) {
+    handleWindowControl(action, windowElement, button) {
         if (this.debug) console.log(`WindowManager: Handling control action "${action}" for`, windowElement);
+
+        const handler = this.actionHandlers.get(action);
+        if (handler) {
+            handler(windowElement, button);
+            return;
+        }
+
+        // In focus mode this is the only visible window, so closing or
+        // un-maximizing it means returning to the desktop.
+        if (this.focusMode?.isActive() && (action === '×' || action === '□')) {
+            this.focusMode.exit();
+            return;
+        }
+
         switch (action) {
             case '×':
                 this.closeWindow(windowElement);

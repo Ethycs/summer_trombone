@@ -15,6 +15,7 @@
 @import url('./components/taskbar.css');
 @import url('./components/mode-toggle.css');
 @import url('./components/academic-mode-view.css');
+@import url('./components/focus-mode.css');
 @import url('./file-tree.css');
 
 /* 3. Responsive and Static Layouts (last to override) */

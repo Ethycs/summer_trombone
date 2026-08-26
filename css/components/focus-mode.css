@@ -1,0 +1,124 @@
+/* Focus Mode - one document as a fullscreen terminal window, plus the
+   copy-link affordance that produces the link which opens it. */
+
+/* --- Fullscreen document window --- */
+
+body.focus-mode .window:not(.focused-doc) {
+    display: none !important;
+}
+
+body.focus-mode .taskbar {
+    display: none;
+}
+
+body.focus-mode .desktop {
+    padding: 0;
+}
+
+body.focus-mode .window.focused-doc {
+    position: fixed;
+    inset: 0;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0;
+    bottom: 0;
+    width: 100vw !important;
+    /* Full height - unlike .maximized there is no taskbar to clear */
+    height: 100vh !important;
+    max-width: none;
+    transform: none !important;
+    resize: none;
+    border-width: 0 0 0 0;
+    z-index: var(--z-active-window);
+}
+
+/* The document fills the window; the sidebar list is noise here. */
+body.focus-mode .window.focused-doc .article-browser {
+    display: none;
+}
+
+body.focus-mode .window.focused-doc .article-content {
+    display: block;
+    width: 100%;
+    height: calc(100vh - 22px);
+    max-width: none;
+    overflow-y: auto;
+    padding: var(--spacing-xl) var(--spacing-lg);
+    /* Roughly 80 monospace columns at the base body size - the terminal's own
+       measure. A fixed length, not ch: ch resolves against each element's own
+       font-size, which would give headings a much wider column than body text. */
+    --focus-measure: 580px;
+}
+
+/* The element itself scrolls, so constrain the blocks inside it rather than
+   the container - otherwise the scrollbar ends up mid-page. Without this the
+   measure runs the full viewport width and reads as a wall of text. */
+body.focus-mode .window.focused-doc .article-content > * {
+    max-width: var(--focus-measure);
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Wide blocks scroll inside themselves instead of stretching the column. */
+body.focus-mode .window.focused-doc .article-content > pre,
+body.focus-mode .window.focused-doc .article-content > table,
+body.focus-mode .window.focused-doc .article-content > .katex-display {
+    overflow-x: auto;
+}
+
+body.focus-mode .window.focused-doc .window-header {
+    cursor: default;
+}
+
+/* --- Copy-link control --- */
+
+.window-button[data-action="copy-link"] {
+    /* Match the sibling divs, which are styled by .window-button alone */
+    font-family: var(--font-stack);
+    line-height: 1;
+    padding: 0;
+}
+
+/* Nothing loaded means nothing to link to. */
+.window:not(.has-document) .window-button[data-action="copy-link"] {
+    display: none;
+}
+
+.window-button.copied {
+    background: var(--terminal-green);
+    color: var(--terminal-bg);
+    box-shadow: var(--glow-large);
+}
+
+/* --- Copy confirmation toast --- */
+
+.copy-toast {
+    position: fixed;
+    top: 32px;
+    right: 16px;
+    z-index: 10001; /* above the academic overlay at 9999 */
+    max-width: min(420px, 80vw);
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--terminal-bg);
+    border: 1px solid var(--terminal-green);
+    box-shadow: var(--glow-medium);
+    color: var(--terminal-green);
+    font-family: var(--font-stack);
+    font-size: var(--font-size-small);
+    word-break: break-all;
+    animation: fadeIn var(--transition-fast) ease-in;
+}
+
+body.academic-mode .copy-toast {
+    background: #fdf6e3;
+    border-color: #586e75;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    color: #073642;
+    font-family: Georgia, 'Times New Roman', serif;
+}
+
+@media (max-width: 768px) {
+    body.focus-mode .window.focused-doc .article-content {
+        padding: var(--spacing-md);
+    }
+}

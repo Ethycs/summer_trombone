@@ -133,6 +133,9 @@ export class MarkdownArticleSystem {
 
     async loadArticle(filename) {
         this.currentArticle = filename;
+        // Gates the copy-link control - there is nothing to link to until a
+        // document is actually loaded.
+        this.container.classList.add('has-document');
         try {
             this.articleContentElement.innerHTML = '<div class="loading-indicator">Loading article...</div>';
 
@@ -187,6 +190,7 @@ export class MarkdownArticleSystem {
             this.articleContentElement.innerHTML =
                 `<div class="error-message">Error loading article: ${error.message}</div>`;
             this.currentArticle = null;
+            this.container.classList.remove('has-document');
         }
     }
 

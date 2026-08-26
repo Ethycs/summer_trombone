@@ -8,6 +8,15 @@
     --terminal-warn: #ffff00;
     --terminal-error: #ff6666;
     
+    /* Academic Mode (Solarized Light) - referenced by components/academic-mode-view.css
+       and reader.html. The full css/academic.css is not in the import chain, so these
+       tokens are defined here; without them those rules silently render as nothing. */
+    --academic-bg: #fdf6e3;
+    --academic-text: #657b83;
+    --academic-header: #268bd2;
+    --academic-link: #cb4b16;
+    --academic-border: #eee8d5;
+
     /* Window System */
     --window-border: #00ff66;
     --window-title-bg: #003d1a;

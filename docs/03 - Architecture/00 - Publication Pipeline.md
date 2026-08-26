@@ -78,7 +78,21 @@ HTML pages               + articles.json     lists      view       + viewers
 **Hard constraints:** Every content control has a meaningful `href`; runtime interception cannot change its canonical identity
 **Target:** `js/modules/`
 
-## 6. Compatibility reader
+## 6. Share links and focus mode
+
+**Domain:** Addressing one document in the interactive surface, and its social preview
+**Runs at:** Vite `writeBundle` (carrier pages and cards); browser runtime (focus mode)
+**Inputs:** `canonicalPath` from the manifest, the finished `dist/index.html`, and the Hack font on disk
+**Outputs:** `/…/<slug>/terminal/` carrier pages, `dist/og/*.png` cards, and a fullscreen document view in both themes
+**Internal structure:** `DocumentRoute.js` owns the URL contract (DOM-free, Node-testable); `FocusMode.js` owns the presentation; `og-card.js` draws the card; the build plugin writes the carriers by swapping the homepage's metadata block
+**Hard constraints:** Carrier pages are `noindex,follow` and canonical to the publication page; they never enter `sitemap.xml`; `DocumentRoute.js` must not read `import.meta.env`; the terminal view never becomes a second indexed copy
+**Target:** `js/modules/DocumentRoute.js`, `js/modules/FocusMode.js`, `og-card.js`, `vite-plugin-build-articles.js`
+
+The terminal UI now carries URL state, which it previously did not. That state is deliberately narrow: the presented document only. Window positions and open/closed state stay out of the URL.
+
+The carrier page exists because social scrapers do not execute JavaScript and a query string has no page of its own on a static host — see [Shareable Document Links](<../01 - Design/01 - Shareable Document Links.md>).
+
+## 7. Compatibility reader
 
 **Domain:** Old inbound `reader.html?path=...` URLs
 **Runs at:** Browser runtime
@@ -91,7 +105,7 @@ HTML pages               + articles.json     lists      view       + viewers
 ## Design axioms
 
 1. Source content, not application state, defines a publication.
-2. A URL is part of the content contract and is generated once.
+2. A URL is part of the content contract and is generated once; alternate presentations of a document are noindex and canonical to it.
 3. Static HTML is the evidence layer; JavaScript is enhancement and compatibility.
 4. The terminal aesthetic may be unconventional, but the document graph is conventional.
 5. Metadata claims are omitted when the source cannot prove them.

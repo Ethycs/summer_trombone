@@ -12,6 +12,15 @@ import { MobileHandler } from './modules/MobileHandler.js';
 import { FileTreeWidget } from './modules/FileTreeWidget.js';
 import { TerminalContentLoader } from './modules/TerminalContentLoader.js';
 import { ThemeSwitcher } from './modules/ThemeSwitcher.js';
+import { FocusMode } from './modules/FocusMode.js';
+import {
+    buildShareUrl,
+    normalizeDocPath,
+    readDocParam,
+    readModeParam,
+    resolveDocToSource
+} from './modules/DocumentRoute.js';
+import { copyShareUrl, showCopyToast } from './modules/clipboard.js';
 
 class TerminalApp {
     constructor() {
@@ -31,20 +40,34 @@ class TerminalApp {
             }
 
             // Check URL parameters for mode
-            const params = new URLSearchParams(window.location.search);
-            const mode = params.get('mode');
+            const search = window.location.search;
+            const mode = readModeParam(search);
+            const basePath = import.meta.env.BASE_URL;
+
+            // The document to present fullscreen, from either share-link form:
+            // the static /articles/<slug>/terminal/ carrier page injects
+            // __FOCUS_DOC__; the /?doc= alias carries it in the query string.
+            const focusDoc = normalizeDocPath(window.__FOCUS_DOC__, basePath)
+                || readDocParam(search, basePath);
 
             // Initialize modules in order
             await this.initializeModules();
-            
+
             // Setup global event listeners
             this.setupGlobalEvents();
-            
-            // If mode=academic is in URL, switch to academic mode after initialization
-            if (mode === 'academic' && this.modules.themeSwitcher) {
-                this.modules.themeSwitcher.setMode('academic');
+
+            // An explicit ?mode= wins over the persisted preference. Both
+            // branches matter: without the 'hacker' case, ?mode=terminal would
+            // leave a saved academic preference in place and focus mode would
+            // run underneath the academic overlay.
+            if (mode && this.modules.themeSwitcher) {
+                this.modules.themeSwitcher.setMode(mode);
             }
-            
+
+            if (focusDoc) {
+                this.openSharedDocument(focusDoc, mode || this.modules.themeSwitcher?.currentMode);
+            }
+
             // Mark as initialized
             this.isInitialized = true;
             
@@ -71,6 +94,15 @@ class TerminalApp {
         // Initialize Window Manager
         this.modules.windowManager = new WindowManager(false);
         this.modules.windowManager.init();
+
+        // Focus mode presents one document as a fullscreen window. The window
+        // manager needs a reference so × and □ can leave focus mode rather than
+        // hiding the only visible window.
+        this.modules.focusMode = new FocusMode(this.modules.windowManager);
+        this.modules.windowManager.focusMode = this.modules.focusMode;
+        this.modules.windowManager.registerAction('copy-link', (windowElement, button) => {
+            this.copyLinkForWindow(windowElement, button);
+        });
 
         // Initialize Mobile Handler with window manager reference
         this.modules.mobileHandler = new MobileHandler(this.modules.windowManager);
@@ -270,10 +302,107 @@ class TerminalApp {
     }
 
     handleEscape() {
+        // Leaving the fullscreen document takes priority over browser fullscreen
+        if (this.modules.focusMode?.exit()) {
+            return;
+        }
+
         // Close any open modals or return to normal state
         if (document.fullscreenElement) {
             document.exitFullscreen();
         }
+    }
+
+    /**
+     * Boot straight into a shared document. The filesystem manifest is loaded
+     * asynchronously and is what maps a canonical route back to a source file,
+     * so wait for the first successful resolution rather than a fixed delay.
+     */
+    openSharedDocument(canonicalPath, mode) {
+        const fileSystemSync = this.modules.fileSystemSync;
+        if (!fileSystemSync) return;
+
+        let handled = false;
+        let unsubscribe = null;
+
+        const attempt = () => {
+            if (handled) return;
+
+            const sourcePath = resolveDocToSource(canonicalPath, fileSystemSync);
+            if (!sourcePath) return; // manifest not in yet - the watcher will retry
+
+            handled = true;
+            unsubscribe?.();
+            this.presentSharedDocument(sourcePath, canonicalPath, mode);
+        };
+
+        unsubscribe = fileSystemSync.watch((event) => {
+            if (event === 'scan-complete' || String(event).startsWith('file-')) attempt();
+        });
+
+        // The scan may already have completed before this ran.
+        attempt();
+    }
+
+    presentSharedDocument(sourcePath, canonicalPath, mode) {
+        const entry = this.modules.fileSystemSync.get(sourcePath) || {};
+
+        if (mode === 'academic') {
+            const academicView = this.modules.themeSwitcher?.academicView;
+            if (academicView) {
+                academicView.openDocument(sourcePath);
+                return;
+            }
+        }
+
+        // Reuse the normal open path: it picks the right window and viewer.
+        this.handleFileOpen(sourcePath);
+
+        const isPaper = sourcePath.split('.').pop().toLowerCase() === 'tex';
+        const windowElement = document.querySelector(isPaper ? '.articles-window' : '.markdown-blog-window');
+        if (!windowElement) return;
+
+        this.modules.focusMode.enter(windowElement, { canonicalPath, title: entry.title });
+
+        // The static /terminal/ pages already ship correct metadata; only the
+        // ?doc= alias lands on the homepage's tags and needs them rewritten.
+        this.modules.focusMode.applyDocumentSeo({
+            title: entry.title,
+            canonicalPath,
+            skip: Boolean(window.__FOCUS_DOC__)
+        });
+    }
+
+    copyLinkForWindow(windowElement, button) {
+        const canonicalPath = this.canonicalPathForWindow(windowElement);
+        if (!canonicalPath) {
+            showCopyToast('No article open to link to', button);
+            return;
+        }
+
+        const url = buildShareUrl({
+            canonicalPath,
+            mode: this.modules.themeSwitcher?.currentMode === 'academic' ? 'academic' : undefined,
+            origin: window.location.origin,
+            basePath: import.meta.env.BASE_URL
+        });
+
+        copyShareUrl(url, button);
+    }
+
+    canonicalPathForWindow(windowElement) {
+        const system = windowElement?.markdownSystem || windowElement?.texSystem;
+        const filename = system?.currentArticle;
+        if (!filename) return null;
+
+        const { files } = this.modules.fileSystemSync?.getAllFilesAsObject() || {};
+        for (const entry of Object.values(files || {})) {
+            if (entry?.path?.split('/').pop() === filename) {
+                return entry.canonicalPath || null;
+            }
+        }
+
+        return null;
     }
 
     handleFileOpen(path) {

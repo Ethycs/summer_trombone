@@ -1,5 +1,7 @@
 import { promises as fs } from 'fs';
 import path from 'path';
+import { createRequire } from 'module';
+import { Resvg } from '@resvg/resvg-js';
 import { render as renderMarkdown } from './js/modules/md.worker.js';
 import { TexParser } from './js/modules/TexParser.js';
 import {
@@ -7,10 +9,22 @@ import {
     extractContentMetadata,
     sitePathToHref
 } from './js/modules/contentMetadata.js';
+import { terminalPathFor } from './js/modules/DocumentRoute.js';
+import {
+    CARD_HEIGHT,
+    CARD_WIDTH,
+    ogImageNameFor,
+    renderOgCardSvg,
+    renderSiteCardSvg
+} from './og-card.js';
 
 const DEFAULT_SITE_URL = 'https://summertrombone.com';
 const HOMEPAGE_START = '<!-- STATIC_PUBLICATIONS_START -->';
 const HOMEPAGE_END = '<!-- STATIC_PUBLICATIONS_END -->';
+const SEO_META_START = '<!-- SEO_META_START -->';
+const SEO_META_END = '<!-- SEO_META_END -->';
+const OG_DIRECTORY = 'og';
+const SITE_CARD_NAME = 'site.png';
 
 function normalizeSiteUrl(value) {
     return String(value || DEFAULT_SITE_URL).trim().replace(/\/+$/, '');
@@ -48,6 +62,54 @@ function canonicalUrl(siteUrl, canonicalPath) {
     return `${siteUrl}${canonicalPath}`;
 }
 
+function ogImageUrl(siteUrl, imageName) {
+    return `${siteUrl}/${OG_DIRECTORY}/${imageName}`;
+}
+
+/**
+ * The og:image block. Scrapers do not run JavaScript, so this has to be present
+ * in the served HTML of whichever URL is being shared - which is why the
+ * /terminal/ carrier pages exist at all.
+ */
+function renderSocialImageMeta(imageUrl, altText) {
+    return `<meta property="og:image" content="${escapeHtml(imageUrl)}">
+    <meta property="og:image:width" content="${CARD_WIDTH}">
+    <meta property="og:image:height" content="${CARD_HEIGHT}">
+    <meta property="og:image:alt" content="${escapeHtml(altText)}">
+    <meta name="twitter:image" content="${escapeHtml(imageUrl)}">`;
+}
+
+/**
+ * resvg reads fonts from disk and cannot fetch the CDN faces the site uses, so
+ * point it at the Hack package that pins the same version as css/base/reset.css.
+ */
+function resolveFontDirectories() {
+    const require = createRequire(import.meta.url);
+    const directories = [];
+
+    try {
+        directories.push(path.dirname(require.resolve('hack-font/build/ttf/Hack-Regular.ttf')));
+    } catch {
+        console.warn('[buildArticlesPlugin] hack-font not installed; social cards will use a fallback face.');
+    }
+
+    return directories;
+}
+
+async function writeOgImage(outputDir, imageName, svg, fontDirs) {
+    const resvg = new Resvg(svg, {
+        fitTo: { mode: 'width', value: CARD_WIDTH },
+        font: {
+            fontDirs: fontDirs,
+            loadSystemFonts: fontDirs.length === 0,
+            defaultFontFamily: 'Hack'
+        }
+    });
+
+    const png = resvg.render().asPng();
+    await fs.writeFile(path.join(outputDir, OG_DIRECTORY, imageName), png);
+}
+
 function renderStructuredData(record, siteUrl) {
     const url = canonicalUrl(siteUrl, record.canonicalPath);
     const data = {
@@ -68,7 +130,8 @@ function renderStructuredData(record, siteUrl) {
                 name: record.author
             }
         } : {}),
-        ...(record.datePublished ? { datePublished: record.datePublished } : {})
+        ...(record.datePublished ? { datePublished: record.datePublished } : {}),
+        image: ogImageUrl(siteUrl, ogImageNameFor(record.canonicalPath))
     };
 
     return safeJson(data);
@@ -93,6 +156,7 @@ function renderDocumentPage(record, publicationCss, siteUrl, basePath) {
         ? `<meta property="article:published_time" content="${escapeHtml(record.datePublished)}">`
         : '';
     const visibleMeta = [typeLabel, record.datePublished, record.author].filter(Boolean).join(' · ');
+    const imageUrl = ogImageUrl(siteUrl, ogImageNameFor(record.canonicalPath));
 
     return `<!DOCTYPE html>
 <html lang="en">
@@ -108,7 +172,8 @@ function renderDocumentPage(record, publicationCss, siteUrl, basePath) {
     <meta property="og:description" content="${escapeHtml(record.description)}">
     <meta property="og:url" content="${escapeHtml(url)}">
     ${dateMeta}
-    <meta name="twitter:card" content="summary">
+    ${renderSocialImageMeta(imageUrl, `${record.title} — Summer Trombone`)}
+    <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="${escapeHtml(record.title)}">
     <meta name="twitter:description" content="${escapeHtml(record.description)}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
@@ -122,7 +187,10 @@ function renderDocumentPage(record, publicationCss, siteUrl, basePath) {
             <p class="publication-meta">${escapeHtml(visibleMeta)}</p>
             ${record.html}
         </article>
-        <p><a href="${sitePathToHref(indexPath, basePath)}">← Back to all ${record.contentType === 'paper' ? 'papers' : 'articles'}</a></p>
+        <p class="publication-actions">
+            <a href="${sitePathToHref(indexPath, basePath)}">← Back to all ${record.contentType === 'paper' ? 'papers' : 'articles'}</a>
+            <a href="${sitePathToHref(terminalPathFor(record.canonicalPath), basePath)}">Open in terminal ⧉</a>
+        </p>
     </main>
     <footer class="publication-footer">Summer Trombone · AI safety, epistemology, and risk research</footer>
     ${record.contentType === 'paper' ? `
@@ -187,7 +255,8 @@ function renderIndexPage(records, contentType, publicationCss, siteUrl, basePath
     <meta property="og:title" content="${title} | Summer Trombone">
     <meta property="og:description" content="${escapeHtml(description)}">
     <meta property="og:url" content="${escapeHtml(canonical)}">
-    <meta name="twitter:card" content="summary">
+    ${renderSocialImageMeta(ogImageUrl(siteUrl, SITE_CARD_NAME), `${title} — Summer Trombone`)}
+    <meta name="twitter:card" content="summary_large_image">
     <style>${publicationCss}</style>
     <script type="application/ld+json">${renderIndexStructuredData(records, title, canonical, siteUrl)}</script>
 </head>
@@ -219,19 +288,65 @@ function renderHomepageCards(records, basePath) {
     }).join('\n');
 }
 
-async function updateHomepage(outputDir, records, basePath) {
-    const homepagePath = path.join(outputDir, 'index.html');
-    let homepage = await fs.readFile(homepagePath, 'utf8');
-    const start = homepage.indexOf(HOMEPAGE_START);
-    const end = homepage.indexOf(HOMEPAGE_END);
+function spliceRegion(html, startMarker, endMarker, replacement, label) {
+    const start = html.indexOf(startMarker);
+    const end = html.indexOf(endMarker);
 
     if (start < 0 || end < start) {
-        throw new Error('Homepage publication markers are missing or out of order.');
+        throw new Error(`${label} markers are missing or out of order.`);
     }
 
-    const replacement = `${HOMEPAGE_START}${renderHomepageCards(records, basePath)}\n                ${HOMEPAGE_END}`;
-    homepage = `${homepage.slice(0, start)}${replacement}${homepage.slice(end + HOMEPAGE_END.length)}`;
-    await fs.writeFile(homepagePath, homepage);
+    return `${html.slice(0, start)}${startMarker}${replacement}${endMarker}${html.slice(end + endMarker.length)}`;
+}
+
+async function updateHomepage(outputDir, records, basePath) {
+    const homepagePath = path.join(outputDir, 'index.html');
+    const homepage = await fs.readFile(homepagePath, 'utf8');
+    const replacement = `${renderHomepageCards(records, basePath)}\n                `;
+
+    await fs.writeFile(
+        homepagePath,
+        spliceRegion(homepage, HOMEPAGE_START, HOMEPAGE_END, replacement, 'Homepage publication')
+    );
+}
+
+/**
+ * The share-link carrier page.
+ *
+ * Built by swapping the metadata block of the finished dist/index.html rather
+ * than hand-writing a shell, so the app boots identically - every window's
+ * markup and the hashed asset URLs come along unchanged. It exists because a
+ * query string (/?doc=...) has no page of its own on a static host and so
+ * cannot carry a per-document og:image.
+ *
+ * It is noindex with a canonical pointing at the publication page, so it never
+ * competes with the indexed route.
+ */
+function renderTerminalPage(record, homepageHtml, siteUrl) {
+    const terminalPath = terminalPathFor(record.canonicalPath);
+    const imageUrl = ogImageUrl(siteUrl, ogImageNameFor(record.canonicalPath));
+    const dateMeta = record.datePublished
+        ? `\n    <meta property="article:published_time" content="${escapeHtml(record.datePublished)}">`
+        : '';
+
+    const head = `
+    <title>${escapeHtml(record.title)} | Summer Trombone</title>
+    <meta name="description" content="${escapeHtml(record.description)}">
+    <meta name="robots" content="noindex,follow">
+    <link rel="canonical" href="${escapeHtml(canonicalUrl(siteUrl, record.canonicalPath))}">
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="Summer Trombone">
+    <meta property="og:title" content="${escapeHtml(record.title)}">
+    <meta property="og:description" content="${escapeHtml(record.description)}">
+    <meta property="og:url" content="${escapeHtml(canonicalUrl(siteUrl, terminalPath))}">${dateMeta}
+    ${renderSocialImageMeta(imageUrl, `${record.title} — Summer Trombone`)}
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="${escapeHtml(record.title)}">
+    <meta name="twitter:description" content="${escapeHtml(record.description)}">
+    <script>window.__FOCUS_DOC__ = ${safeJson(record.canonicalPath)};</script>
+    `;
+
+    return spliceRegion(homepageHtml, SEO_META_START, SEO_META_END, head, 'Homepage SEO');
 }
 
 function renderSitemap(records, siteUrl) {
@@ -339,11 +454,34 @@ export function buildArticlesPlugin() {
 
                 await writePage(outputDir, '/articles/', renderIndexPage(articlesIndex, 'article', publicationCss, siteUrl, basePath));
                 await writePage(outputDir, '/papers/', renderIndexPage(papersIndex, 'paper', publicationCss, siteUrl, basePath));
+
+                // Sitemap lists canonical routes only - the /terminal/ carrier
+                // pages are noindex and must not appear here.
                 await fs.writeFile(path.join(outputDir, 'sitemap.xml'), renderSitemap(records, siteUrl));
                 await fs.writeFile(path.join(outputDir, 'robots.txt'), `User-agent: *\nAllow: /\n\nSitemap: ${siteUrl}/sitemap.xml\n`);
                 await updateHomepage(outputDir, records, basePath);
 
+                // Social cards, then the carrier pages that advertise them.
+                const fontDirs = resolveFontDirectories();
+                await fs.mkdir(path.join(outputDir, OG_DIRECTORY), { recursive: true });
+                await writeOgImage(outputDir, SITE_CARD_NAME, renderSiteCardSvg(), fontDirs);
+
+                for (const record of records) {
+                    await writeOgImage(outputDir, ogImageNameFor(record.canonicalPath), renderOgCardSvg(record), fontDirs);
+                }
+
+                // Read the homepage after updateHomepage so carriers inherit the splice.
+                const homepageHtml = await fs.readFile(path.join(outputDir, 'index.html'), 'utf8');
+                for (const record of records) {
+                    await writePage(
+                        outputDir,
+                        terminalPathFor(record.canonicalPath),
+                        renderTerminalPage(record, homepageHtml, siteUrl)
+                    );
+                }
+
                 console.log(`[buildArticlesPlugin] Published ${records.length} canonical documents.`);
+                console.log(`[buildArticlesPlugin] Wrote ${records.length} terminal share pages and ${records.length + 1} social cards.`);
                 console.log(`[buildArticlesPlugin] Wrote indexes, sitemap.xml, robots.txt, and ${outputFile}.`);
             } catch (error) {
                 console.error('[buildArticlesPlugin] Error:', error);

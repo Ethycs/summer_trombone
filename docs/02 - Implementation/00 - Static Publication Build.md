@@ -28,6 +28,10 @@ The Vite build emits canonical, server-readable HTML for every public Markdown p
 | `dist/sitemap.xml` | Canonical discovery URLs | Static routes + build inventory |
 | `dist/robots.txt` | Crawl permission and sitemap location | Site URL |
 | `dist/index.html` publication cards | Current real corpus in initial homepage HTML | Content sorted by publication or modification date |
+| `dist/articles/<slug>/terminal/index.html` | Share link that opens the document fullscreen in the terminal; carries the per-document `og:image`. `noindex,follow`, canonical to the publication page, absent from the sitemap | Finished `dist/index.html` with its `SEO_META` block swapped |
+| `dist/papers/<slug>/terminal/index.html` | Same, for papers | Same |
+| `dist/og/<slug>.png` | 1200×630 terminal-window social card | `og-card.js` SVG template rasterized by `@resvg/resvg-js` using `hack-font` |
+| `dist/og/site.png` | Generic card for the homepage and collection indexes | Same |
 
 ## Metadata derivation
 
@@ -47,9 +51,11 @@ Descriptions are plain text, whitespace-normalized, and limited to 160 character
 1. `.github/scripts/generate-manifest.js` reads every source and records title, description, canonical path, schema type, hashes, and available dates/authors in `system/filesystem.json`.
 2. Vite renders the application entries.
 3. `vite-plugin-build-articles.js` reads the manifest and source files, invokes the existing renderer for each source, and normalizes the document to one H1.
-4. The plugin writes canonical documents, collection indexes, `articles.json`, `sitemap.xml`, and `robots.txt`.
+4. The plugin writes canonical documents, collection indexes, `articles.json`, `sitemap.xml`, and `robots.txt`. The sitemap lists canonical routes only.
 5. The plugin replaces the content between `STATIC_PUBLICATIONS_START` and `STATIC_PUBLICATIONS_END` in the built homepage with the latest real publications.
-6. The copy plugin adds the source blog and manifest required by the interactive interface.
+6. It rasterizes one social card per document, plus the generic site card, into `dist/og/`.
+7. It re-reads the now-spliced `dist/index.html` and writes one `terminal/` share page per document by swapping the `SEO_META_START`/`SEO_META_END` block, so each inherits the real app shell and the hashed asset URLs.
+8. The copy plugin adds the source blog and manifest required by the interactive interface.
 
 ## Runtime navigation
 
