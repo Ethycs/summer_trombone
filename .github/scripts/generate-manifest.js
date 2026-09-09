@@ -27,26 +27,60 @@ const manifest = {
     lastUpdated: new Date().toISOString()
 };
 
-function getGitFirstCommitDate(filePath) {
+/**
+ * Run `git log` for a content file.
+ *
+ * `blog/` is a submodule, so its file history lives in the content repository,
+ * not this one. Running from the repository root would return nothing - the
+ * parent only tracks a commit pointer - and the caller would silently fall back
+ * to filesystem timestamps, which on a CI runner are the checkout time. So the
+ * command runs with its working directory inside the content root and a path
+ * relative to it. That also works when blog/ is an ordinary directory.
+ *
+ * Returns the commit dates newest-first, or an empty array.
+ */
+function gitLogDates(filePath, extraArgs = []) {
+    const contentDir = path.join(process.cwd(), contentRoot);
+    const relativePath = path.relative(contentDir, filePath).split(path.sep).join('/');
+
     try {
-        const command = `git log --follow --format=%aD "${filePath}" | tail -n 1`;
-        const dateStr = execSync(command).toString().trim();
-        return new Date(dateStr).toISOString();
+        const output = execSync(
+            `git log ${extraArgs.join(' ')} --format=%aD -- "${relativePath}"`,
+            { cwd: contentDir, stdio: ['ignore', 'pipe', 'pipe'] }
+        ).toString().trim();
+
+        return output ? output.split('\n').map(line => line.trim()).filter(Boolean) : [];
     } catch (error) {
-        console.warn(`Could not get first commit date for ${filePath}. Using file creation time.`);
-        return fs.statSync(filePath).birthtime.toISOString();
+        console.warn(`git log failed for ${relativePath}: ${error.message}`);
+        return [];
     }
 }
 
+function toIso(dateStr) {
+    const parsed = new Date(dateStr);
+    return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
+}
+
+function getGitFirstCommitDate(filePath) {
+    // Oldest commit that touched the file, following it across renames.
+    const dates = gitLogDates(filePath, ['--follow']);
+    const first = dates.length ? toIso(dates[dates.length - 1]) : null;
+
+    if (first) return first;
+
+    console.warn(`No git history for ${filePath}; falling back to filesystem creation time. `
+        + 'On a CI runner that is the checkout time, not the authoring date.');
+    return fs.statSync(filePath).birthtime.toISOString();
+}
+
 function getGitLastCommitDate(filePath) {
-    try {
-        const command = `git log -1 --format=%aD "${filePath}"`;
-        const dateStr = execSync(command).toString().trim();
-        return new Date(dateStr).toISOString();
-    } catch (error) {
-        console.warn(`Could not get last commit date for ${filePath}. Using file modification time.`);
-        return fs.statSync(filePath).mtime.toISOString();
-    }
+    const dates = gitLogDates(filePath, ['-1']);
+    const last = dates.length ? toIso(dates[0]) : null;
+
+    if (last) return last;
+
+    console.warn(`No git history for ${filePath}; falling back to filesystem modification time.`);
+    return fs.statSync(filePath).mtime.toISOString();
 }
 
 function getFileId(filePath) {

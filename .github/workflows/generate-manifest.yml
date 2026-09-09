@@ -4,6 +4,16 @@ on:
   push:
     branches:
       - main # Or your default branch
+  # Fired by summer_trombone_content when an article or paper is pushed there.
+  repository_dispatch:
+    types: [content-updated]
+  # Manual rebuild, optionally pulling the latest content.
+  workflow_dispatch:
+    inputs:
+      update_content:
+        description: 'Advance the blog/ submodule to the latest content before building'
+        type: boolean
+        default: true
 
 permissions:
   contents: write
@@ -18,8 +28,21 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          # We need to fetch the full history to get accurate creation dates
+          # Full history in this repo AND in blog/ - generate-manifest.js reads
+          # `git log --follow` inside the submodule to date new articles, and a
+          # shallow clone would leave it with nothing to read.
           fetch-depth: 0
+          submodules: recursive
+
+      # A submodule is a pinned commit, so a content push does not move the site
+      # on its own. Advance the pointer when content triggered this run; leave it
+      # pinned for ordinary site-code pushes so those stay reproducible.
+      - name: Advance blog submodule to latest content
+        if: github.event_name == 'repository_dispatch' || (github.event_name == 'workflow_dispatch' && inputs.update_content)
+        run: |
+          git submodule update --remote --recursive blog
+          cd blog
+          echo "Content now at: $(git rev-parse --short HEAD) - $(git log -1 --format=%s)"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -54,8 +77,11 @@ jobs:
       - name: Commit and push manifest
         uses: stefanzweifel/git-auto-commit-action@v6
         with:
-          commit_message: "chore: Update system/filesystem.json manifest"
-          file_pattern: 'system/filesystem.json' # Changed file pattern
+          commit_message: "chore: Update content pointer and manifest"
+          # `blog` stages the submodule pointer when content advanced it above.
+          # Pushes made with GITHUB_TOKEN do not re-trigger workflows, so this
+          # cannot loop back into another build.
+          file_pattern: 'system/filesystem.json blog'
           commit_user_name: "github-actions[bot]"
           commit_user_email: "github-actions[bot]@users.noreply.github.com"
           commit_author: "github-actions[bot] <github-actions[bot]@users.noreply.github.com>"
